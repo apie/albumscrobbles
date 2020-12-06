@@ -3,10 +3,14 @@
 # 2020-12-06
 
 # TODO
-# Async celery uvicorn? Start of with sync gunicorn and 2 workers
+# Async celery uvicorn? Start off with sync gunicorn and 2 workers
+# Favicon
 # Show some recent users and top albums on the front page?
 # Create dockerfile and deploy to openode.io (NOTE: there we can not use the file cache)
 # Write blogpost
+# User-sortable columns
+# Hyperlinks to last.fm album/artist pages
+# Album images
 
 from flask import Flask, request
 from jinja2 import Environment, PackageLoader, select_autoescape
