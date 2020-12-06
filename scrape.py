@@ -5,7 +5,6 @@
 
 # IDEA: use playcount in minutes
 # TODO
-# use logger for url logging
 # switch between all time/last year etc
 
 # Caching policy:
