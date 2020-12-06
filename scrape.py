@@ -18,8 +18,8 @@
 
 import requests
 from lxml import html
-from functools import lru_cache
 from pathlib import Path
+
 TIMEOUT = 8
 USE_FILE_CACHE = True
 
@@ -32,7 +32,7 @@ def get_filename(*args):
 
 def get_from_cache(*args, func, keep_days=None) -> str:
     #TODO implement keep_days
-    print(f"getting {func} from cache: {args=} {keep_days=}")
+    # print(f"getting {func} from cache: {args=} {keep_days=}")
     with open(f"/tmp/albumscrobbles/{func}/{get_filename(*args)}") as f:
         return f.read()
 
@@ -59,7 +59,6 @@ def file_cache_decorator(keep_days=None):
         return wrapper
     return inner
 
-@lru_cache()
 def get_album_stats(username):
     # TODO make possible to get stats of other time frames
     # url to get album scrobbles for this user off all time
@@ -76,7 +75,6 @@ def get_album_stats(username):
     )
     return (map(lambda e: e.text.strip(), elements) for elements in l)
 
-@lru_cache()
 @file_cache_decorator()
 def _get_album_track_count(artist_name, album_name) -> str:
     # TODO what about albums that are detected incorrectly?
@@ -110,18 +108,17 @@ def correct_album_stats(stats):
         for stat in stats
     )
 
-# print(get_album_track_count("TRON: Legacy", "Daft Punk"))
-# print(list(next(get_album_stats('casparv'))))
-# print(get_corrected_album_stats(['TRON: Legacy', 'Daft Punk', '925']))
-# for stat in get_album_stats('casparv'):
-    # print('-'*10)
-    # stat = list(stat)
-    # print(stat)
-    # print(get_corrected_stats_for_album(stat))
-from pprint import pprint
-stats = get_album_stats('casparv')
-corrected = correct_album_stats(stats)
-pprint(sorted(list(corrected), key=lambda x: x[4]))
-stats = get_album_stats('denick')
-corrected = correct_album_stats(stats)
-pprint(sorted(list(corrected), key=lambda x: x[4]))
+def username_exists(username):
+    resp = session.head(f"https://www.last.fm/user/{username}")
+    return resp.status_code == 200
+
+if __name__ == "__main__":
+    from pprint import pprint
+    from sys import argv
+    if len(argv) == 1:
+        raise Exception('Give username as first argument')
+    stats = get_album_stats(argv[1])
+    corrected = correct_album_stats(stats)
+    print(f'Album stats for {argv[1]}')
+    print(('Album', 'Artist', 'Track playcount', 'Album track count', 'Album plays'))
+    pprint(sorted(list(corrected), key=lambda x: x[4]))

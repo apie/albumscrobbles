@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% block head %}
+  <!-- <link rel="stylesheet" href="style.css" /> -->
+  <title>Albumscrobbles.com{% if title %} - {% endif %}{% block title %}{{ title }}{% endblock %}</title>
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <style>
+    html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% endblock %}
+</head>
+<body>
+  <div class="w3-container w3-teal">
+    <h1><a href="/">Albumscrobbles.com</a></h1>
+  </div>
+  {% block content %}{% endblock %}
+</body>
+</html>
