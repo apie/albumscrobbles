@@ -40,7 +40,7 @@ def index():
 def get_user_stats(username):
     if not username or not username_exists(username):
         return f'Invalid user {username}' # TODO status code
-    print(f"Get {username=}")
+    print(f"Get {username}")
     stats = get_album_stats(username)
     corrected = correct_album_stats(stats)
     # Sort by album plays

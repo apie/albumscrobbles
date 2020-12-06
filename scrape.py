@@ -32,13 +32,13 @@ def get_filename(*args):
 
 def get_from_cache(*args, func, keep_days=None) -> str:
     #TODO implement keep_days
-    # print(f"getting {func} from cache: {args=} {keep_days=}")
+    # print(f"getting {func} from cache: {args} {keep_days}")
     with open(f"/tmp/albumscrobbles/{func}/{get_filename(*args)}") as f:
         return f.read()
 
 def update_cache(*args, func, result: str):
     assert isinstance(result, str), f'Cache can only be used for string results! Not for {result}'
-    print(f"updating {func} in cache: {args=} {result=}")
+    print(f"updating {func} in cache: {args} {result}")
     path = Path(f"/tmp/albumscrobbles/{func}")
     path.mkdir(parents=True, exist_ok=True)
     with open(path / Path(get_filename(*args)), "w") as f:
