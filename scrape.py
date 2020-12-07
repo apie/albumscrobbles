@@ -43,7 +43,6 @@ def update_cache(*args, func, result: str):
     path.mkdir(parents=True, exist_ok=True)
     with open(path / Path(get_filename(*args)), "w") as f:
         f.write(result)
-    print('updated cache')
 
 def file_cache_decorator(keep_days=None):
     def inner(func):
