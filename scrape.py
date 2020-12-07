@@ -83,9 +83,9 @@ def _get_album_track_count(artist_name, album_name) -> str:
     print(url)
     page = session.get(url, timeout=TIMEOUT).text
     doc = html.fromstring(page)
-    # search for: Length ## tracks, ##:##
+    # search for: <dt>Length</dt> <dd>## tracks, ##:##</dd>
     try:
-        dd = doc.xpath("//dd[@class='catalogue-metadata-description']")[0]
+        dd = doc.xpath("//dt[@class='catalogue-metadata-heading'][contains(text(),'Length')]/following-sibling::dd")[0]
         return dd.text_content().strip().split('tracks')[0].strip()
     except IndexError:
         # TODO add fallback? Discogs or something
