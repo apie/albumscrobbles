@@ -86,7 +86,7 @@ def _get_album_track_count(artist_name, album_name) -> str:
     # search for: <dt>Length</dt> <dd>## tracks, ##:##</dd>
     try:
         dd = doc.xpath("//dt[@class='catalogue-metadata-heading'][contains(text(),'Length')]/following-sibling::dd")[0]
-        return dd.text_content().strip().split('tracks')[0].strip()
+        return dd.text_content().strip().split('track')[0].strip()
     except IndexError:
         # TODO add fallback? Discogs or something
         return str(12) # Use some average track count
