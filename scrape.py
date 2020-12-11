@@ -98,7 +98,7 @@ def _get_corrected_stats_for_album(album_stats):
     # return as a list
     album_name, artist_name, scrobble_count = album_stats
     track_count = _get_album_track_count(artist_name, album_name)
-    album_scrobble_count = int(scrobble_count) // int(track_count)
+    album_scrobble_count = int(scrobble_count.replace(',', '')) // int(track_count)
     return album_name, artist_name, scrobble_count, track_count, album_scrobble_count
 
 def correct_album_stats(stats):
