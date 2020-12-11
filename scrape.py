@@ -18,45 +18,13 @@
 
 import requests
 from lxml import html
-from pathlib import Path
+from file_cache import file_cache_decorator
 
 TIMEOUT = 8
-USE_FILE_CACHE = True
 
 session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
 session.mount('https://', a)
-
-def get_filename(*args):
-    return '-'.join(arg.replace('/','-') for arg in args)
-
-def get_from_cache(*args, func, keep_days=None) -> str:
-    #TODO implement keep_days
-    # print(f"getting {func} from cache: {args} {keep_days}")
-    with open(f"/tmp/albumscrobbles/{func}/{get_filename(*args)}") as f:
-        return f.read()
-
-def update_cache(*args, func, result: str):
-    assert isinstance(result, str), f'Cache can only be used for string results! Not for {result}'
-    print(f"updating {func} in cache: {args} {result}")
-    path = Path(f"/tmp/albumscrobbles/{func}")
-    path.mkdir(parents=True, exist_ok=True)
-    with open(path / Path(get_filename(*args)), "w") as f:
-        f.write(result)
-
-def file_cache_decorator(keep_days=None):
-    def inner(func):
-        def wrapper(*args, **kwargs):
-            if not USE_FILE_CACHE:
-                return func(*args, **kwargs)
-            try:
-                return get_from_cache(*args, **kwargs, func=func.__name__, keep_days=keep_days)
-            except FileNotFoundError:
-                result = func(*args, **kwargs)
-                update_cache(*args, **kwargs, func=func.__name__, result=result)
-                return result
-        return wrapper
-    return inner
 
 def get_album_stats(username):
     # TODO make possible to get stats of other time frames
