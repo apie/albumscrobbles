@@ -2,17 +2,6 @@
 # By Apie
 # 2020-12-06
 
-# TODO
-# Async celery uvicorn? Start off with sync gunicorn and 2 workers
-# Todo it takes too long now. Try the above and show a spinner.
-# Favicon
-# Show some recent users and top albums on the front page?
-# Create dockerfile and deploy to openode.io (NOTE: there we can not use the file cache)
-# Write blogpost and refer to old blog from 2008 on last.fm (available still as top_en.txt)
-# User-sortable columns
-# Hyperlinks to last.fm album/artist pages
-# Album images
-
 
 from flask import Flask, request
 from jinja2 import Environment, PackageLoader, select_autoescape

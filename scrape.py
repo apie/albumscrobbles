@@ -3,10 +3,6 @@
 # 2020-12-05
 # Script to fetch album stats from last.fm and recalculate them based on track count per album.
 
-# IDEA: use playcount in minutes
-# TODO
-# switch between all time/last year etc
-
 # Caching policy:
 # Track count: forever
 # all time stats: 2 months
