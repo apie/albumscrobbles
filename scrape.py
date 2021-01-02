@@ -40,9 +40,10 @@ def get_album_stats(username):
 
 @file_cache_decorator()
 def _get_album_track_count(artist_name, album_name) -> str:
-    # TODO what about albums that are detected incorrectly?
+    # What about albums that are detected incorrectly?
     # eg https://www.last.fm/music/Delain/April+Rain is recognized as the single, with only 2 tracks.
     # Maybe always add a cross check to discogs?
+    # For now: ignore 1-2 track albums for now and just return the average.
     url = f"https://www.last.fm/music/{artist_name.replace(' ', '+')}/{album_name.replace(' ', '+')}"
     print(url)
     page = session.get(url, timeout=TIMEOUT).text
@@ -50,8 +51,11 @@ def _get_album_track_count(artist_name, album_name) -> str:
     # search for: <dt>Length</dt> <dd>## tracks, ##:##</dd>
     try:
         dd = doc.xpath("//dt[@class='catalogue-metadata-heading'][contains(text(),'Length')]/following-sibling::dd")[0]
-        return dd.text_content().strip().split('track')[0].strip()
-    except IndexError:
+        track_count = dd.text_content().strip().split('track')[0].strip()
+        assert track_count.isnumeric()
+        assert int(track_count) > 2, 'Probably not a real album'
+        return track_count
+    except (IndexError, AssertionError):
         # TODO add fallback? Discogs or something
         return str(12) # Use some average track count
 
