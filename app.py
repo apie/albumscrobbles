@@ -33,8 +33,7 @@ def index():
 
 @lru_cache()
 def get_user_stats(username):
-    if not username or not username_exists(username):
-        return f'Invalid user {username}' # TODO status code
+    assert username and username_exists(username)
     print(f"Get {username}")
     stats = get_album_stats(username)
     corrected = correct_album_stats(stats)
@@ -48,7 +47,11 @@ def get_user_stats(username):
 
 @app.route("/get_stats")
 def get_stats():
-    return get_user_stats(request.args.get('username'))
+    username = request.args.get('username')
+    try:
+        return get_user_stats(username)
+    except AssertionError:
+        return f'Invalid user {username}', 404
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
