@@ -22,10 +22,10 @@ session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
 session.mount('https://', a)
 
-def get_album_stats(username):
-    # TODO make possible to get stats of other time frames
-    # url to get album scrobbles for this user off all time
-    url = f"https://www.last.fm/user/{username}/library/albums"
+def get_album_stats(username, drange=None):
+    preset = f"LAST_{drange}_DAYS" if drange else "ALL"
+    # url to get album scrobbles for this user
+    url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
     # if username does not exist this will return a 404
     print(url)
     page = session.get(url, timeout=TIMEOUT).text
@@ -67,7 +67,13 @@ def _get_corrected_stats_for_album(album_stats):
     album_name, artist_name, scrobble_count = album_stats
     track_count = _get_album_track_count(artist_name, album_name)
     album_scrobble_count = int(scrobble_count.replace(',', '')) // int(track_count)
-    return album_name, artist_name, scrobble_count, track_count, album_scrobble_count
+    return dict(
+        album_name=album_name,
+        artist_name=artist_name,
+        scrobble_count=scrobble_count,
+        track_count=track_count,
+        album_scrobble_count=album_scrobble_count,
+    )
 
 def correct_album_stats(stats):
     return (

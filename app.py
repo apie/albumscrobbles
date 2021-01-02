@@ -32,24 +32,25 @@ def index():
     )
 
 @lru_cache()
-def get_user_stats(username):
+def get_user_stats(username, drange=None):
     assert username and username_exists(username)
     print(f"Get {username}")
-    stats = get_album_stats(username)
+    stats = get_album_stats(username, drange)
     corrected = correct_album_stats(stats)
-    # Sort by album plays
-    sorted_list = sorted(list(corrected), key=lambda x: -x[4])
+    sorted_list = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
     return env.get_template('stats.html').render(
         title=f'Album stats for {username}',
         username=username,
         stats=sorted_list,
+        range=drange,
     )
 
 @app.route("/get_stats")
 def get_stats():
     username = request.args.get('username')
+    drange = request.args.get('range')
     try:
-        return get_user_stats(username)
+        return get_user_stats(username, drange)
     except AssertionError:
         return f'Invalid user {username}', 404
 
