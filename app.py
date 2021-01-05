@@ -30,10 +30,9 @@ def index():
         title='Welcome!'
     )
 
-@lru_cache()
 def get_user_stats(username, drange=None):
     assert username and username_exists(username)
-    print(f"Get {username}")
+    print(f"Get {username} {drange}")
     stats = get_album_stats(username, drange)
     corrected = correct_album_stats(stats)
     sorted_list = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
@@ -50,7 +49,8 @@ def get_stats():
     drange = request.args.get('range')
     try:
         return get_user_stats(username, drange)
-    except AssertionError:
+    except AssertionError as e:
+        print(e)
         return f'Invalid user {username}', 404
 
 if __name__ == "__main__":

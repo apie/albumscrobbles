@@ -5,15 +5,14 @@
 
 # Caching policy:
 # Track count: forever
-# all time stats: 2 months
-# 365: 30 days
-# 180: 15 days
-#  90:  7 days
-#  30:  3 days
-#   7:  1 day
+# all time, 365, 180: 1 month
+# 90, 30, 7:  1 day
 
+import json
 import requests
 from lxml import html
+from functools import lru_cache
+
 from file_cache import file_cache_decorator
 
 TIMEOUT = 8
@@ -22,7 +21,23 @@ session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
 session.mount('https://', a)
 
+@file_cache_decorator(keep_days=1)
+def get_album_stats_cached_one_day(username, drange=None):
+        return _get_album_stats(username, drange)
+
+@file_cache_decorator(keep_days=30)
+def get_album_stats_cached_one_month(username, drange=None):
+        return _get_album_stats(username, drange)
+
 def get_album_stats(username, drange=None):
+    if drange and int(drange) < 180:
+        retval = get_album_stats_cached_one_day(username, drange)
+    else:
+        retval = get_album_stats_cached_one_month(username, drange)
+    return json.loads(retval)
+
+def _get_album_stats(username, drange=None):
+    print(f'_get_album_stats {username} {drange}')
     preset = f"LAST_{drange}_DAYS" if drange else "ALL"
     # url to get album scrobbles for this user
     url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
@@ -36,7 +51,8 @@ def get_album_stats(username, drange=None):
         doc.xpath("//tr/td[@class='chartlist-artist']/a"),
         doc.xpath("//tr/td/span/a/span[@class='chartlist-count-bar-value']")
     )
-    return (map(lambda e: e.text.strip(), elements) for elements in l)
+    # Needs to be cacheable so we can not use a generator.
+    return json.dumps(list(list(map(lambda e: e.text.strip(), elements)) for elements in l))
 
 @file_cache_decorator()
 def _get_album_track_count(artist_name, album_name) -> str:
@@ -81,6 +97,7 @@ def correct_album_stats(stats):
         for stat in stats
     )
 
+@lru_cache()
 def username_exists(username):
     resp = session.head(f"https://www.last.fm/user/{username}")
     return resp.status_code == 200
@@ -88,10 +105,15 @@ def username_exists(username):
 if __name__ == "__main__":
     from pprint import pprint
     from sys import argv
-    if len(argv) == 1:
-        raise Exception('Give username as first argument')
-    stats = get_album_stats(argv[1])
+    if len(argv) < 2:
+        raise Exception('Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range.')
+    if len(argv) < 3:
+        drange = None
+    else:
+        drange = argv[2]
+        assert int(drange) in (7,30,90,180,365)
+    stats = get_album_stats(argv[1], drange)
     corrected = correct_album_stats(stats)
     print(f'Album stats for {argv[1]}')
     print(('Album', 'Artist', 'Track playcount', 'Album track count', 'Album plays'))
-    pprint(sorted(list(corrected), key=lambda x: x[4]))
+    pprint(sorted(list(corrected), key=lambda x: -x['album_scrobble_count']))
