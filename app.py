@@ -20,7 +20,6 @@ env = Environment(
 from scrape import get_album_stats, correct_album_stats, username_exists
 
 @app.route('/favicon.ico')
-@lru_cache()
 def favicon():
     return app.send_static_file('favicon.ico')
 
