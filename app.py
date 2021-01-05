@@ -31,6 +31,7 @@ def index():
     )
 
 def get_user_stats(username, drange=None):
+    username = username.strip()
     assert username and username_exists(username)
     print(f"Get {username} {drange}")
     stats = get_album_stats(username, drange)
@@ -46,6 +47,8 @@ def get_user_stats(username, drange=None):
 @app.route("/get_stats")
 def get_stats():
     username = request.args.get('username')
+    if not username:
+        return 'Username required', 400
     drange = request.args.get('range')
     try:
         return get_user_stats(username, drange)
