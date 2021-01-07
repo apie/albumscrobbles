@@ -9,7 +9,8 @@ from functools import wraps
 SUBDIR = 'albumscrobbles'
 
 def get_filename(*args):
-    return '-'.join(arg.replace('/','-') for arg in args if arg)
+    # Truncate filename to a max length
+    return '-'.join(arg.replace('/','-') for arg in args if arg)[:200]
 
 def get_from_cache(*args, func_name, keep_days=None) -> str:
     filename = Path(f"/tmp/{SUBDIR}/{func_name}/{get_filename(*args)}")

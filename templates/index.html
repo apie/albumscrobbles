@@ -3,8 +3,9 @@
 <div class="w3-container" style="max-width: 600px;">
   <h2>Welcome!</h2>
   <h3>Calculate your <em>real</em> album listening stats, based on the track count per album.</h3>
-  <form class="w3-container" method="GET" action="/get_stats" onSubmit="document.getElementById('submit').disabled=true;document.getElementById('submit').value='Calculating...';">
+  <form class="w3-container" method="GET" action="/get_stats" onSubmit="document.getElementById('submit').disabled=true;document.getElementById('submit').value='Calculating...';document.getElementById('overlay').classList.toggle('w3-hide');">
       <label for="username">Enter your <a href="https://www.last.fm">last.fm</a> username:</label>
+      <input name="range" type="hidden">
       <input id="username" name="username" class="w3-input w3-border w3-round" type="text" required autofocus placeholder="username">
       <br>
       <input id="submit" class="w3-btn w3-theme-action w3-round" type="submit" value="Calculate">

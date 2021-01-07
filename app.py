@@ -38,10 +38,11 @@ def get_user_stats(username, drange=None):
     corrected = correct_album_stats(stats)
     sorted_list = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
     return env.get_template('stats.html').render(
-        title=f'Album stats for {username}',
+        title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
         stats=sorted_list,
-        range=drange,
+        ranges=(7,30,90,180,365,''),
+        selected_range=drange,
     )
 
 @app.route("/get_stats")

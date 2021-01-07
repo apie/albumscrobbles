@@ -6,12 +6,20 @@
       <h3>Real album stats for <a href="https://www.last.fm/user/{{username}}">{{ username }}</a></h3>
     </div>
     <div class="w3-third w3-padding-16">
-      {% if range == '7'%}<strong>{%endif%}<a href="/get_stats?username={{username}}&range=7">Last 7 days</a>{% if range == '7'%}</strong>{%endif%}
-      {% if range == '30'%}<strong>{%endif%}<a href="/get_stats?username={{username}}&range=30">Last 30 days</a>{% if range == '30'%}</strong>{%endif%}
-      {% if range == '90'%}<strong>{%endif%}<a href="/get_stats?username={{username}}&range=90">Last 90 days</a>{% if range == '90'%}</strong>{%endif%}
-      {% if range == '180'%}<strong>{%endif%}<a href="/get_stats?username={{username}}&range=180">Last 180 days</a>{% if range == '180'%}</strong>{%endif%}
-      {% if range == '365'%}<strong>{%endif%}<a href="/get_stats?username={{username}}&range=365">Last 365 days</a>{% if range == '365'%}</strong>{%endif%}
-      {% if not range %}<strong>{%endif%}<a href="/get_stats?username={{username}}">All time</a>{% if not range %}</strong>{%endif%}
+      {% for range in ranges %}
+        {% if selected_range == range|string %}<strong>{%endif%}
+        <a
+          href="/get_stats?username={{username}}&range={{range}}"
+          onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+        >
+          {% if range %}
+            Last {{range}} days
+          {% else %}
+            All time
+          {% endif %}
+        </a>
+        {% if selected_range == range|string %}</strong>{%endif%}
+      {% endfor %}
     </div>
   </div>
   <table class="w3-table-all w3-hoverable">

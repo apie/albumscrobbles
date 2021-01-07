@@ -7,6 +7,30 @@
   <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-teal.css">
   <style>
     html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
+    /* https://www.w3schools.com/howto/howto_css_overlay.asp */
+    #overlay {
+      position: fixed; /* Sit on top of the page content */
+      width: 100%; /* Full width (cover the whole page) */
+      height: 100%; /* Full height (cover the whole page) */
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    }
+    /* https://www.w3schools.com/howto/howto_css_loader.asp */
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 120px;
+      height: 120px;
+      margin: -76px 0 0 -76px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+    }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {% endblock %}
@@ -16,5 +40,8 @@
     <h1><a href="/">Albumscrobbles.com</a></h1>
   </div>
   {% block content %}{% endblock %}
+   <div id="overlay" class="w3-hide w3-animate-opacity">
+    <div id="loader" class="w3-spin"></div>
+   </div> 
 </body>
 </html>
