@@ -53,10 +53,7 @@ def _get_album_stats(username, drange=None):
         doc.xpath("//tr/td[@class='chartlist-index']"),
     )
     # Needs to be cacheable so we can not use a generator.
-    json_str = json.dumps(list(list(map(lambda e: e.text.strip(), elements)) for elements in l))
-    if len(json_str) < 3:
-        raise Exception('Got very little data from last.fm')
-    return json_str
+    return json.dumps(list(list(map(lambda e: e.text.strip(), elements)) for elements in l))
 
 @file_cache_decorator()
 def _get_album_track_count(artist_name, album_name) -> str:
