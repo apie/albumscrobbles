@@ -36,7 +36,7 @@ def get_user_stats(username, drange=None):
     print(f"Get {username} {drange}")
     stats = get_album_stats(username, drange)
     # Sort by total plays
-    sorted_stats = sorted(stats, key=lambda x: -int(x[2]))
+    sorted_stats = sorted(stats, key=lambda x: -int(x[2].replace(',', '')))
     #  and get the first, to get original top album.
     original_album, original_artist, _orginal_playcount, _original_position = sorted_stats[0]
     corrected = correct_album_stats(stats)
