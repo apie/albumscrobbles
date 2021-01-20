@@ -49,7 +49,8 @@ def _get_album_stats(username, drange=None):
     l = zip(
         doc.xpath("//tr/td[@class='chartlist-name']/a"),
         doc.xpath("//tr/td[@class='chartlist-artist']/a"),
-        doc.xpath("//tr/td/span/a/span[@class='chartlist-count-bar-value']")
+        doc.xpath("//tr/td/span/a/span[@class='chartlist-count-bar-value']"),
+        doc.xpath("//tr/td[@class='chartlist-index']"),
     )
     # Needs to be cacheable so we can not use a generator.
     return json.dumps(list(list(map(lambda e: e.text.strip(), elements)) for elements in l))
@@ -80,7 +81,7 @@ def _get_corrected_stats_for_album(album_stats):
     # fetch the number of tracks on that album
     # calculate the number of album plays
     # return as a list
-    album_name, artist_name, scrobble_count = album_stats
+    album_name, artist_name, scrobble_count, original_position = album_stats
     track_count = _get_album_track_count(artist_name, album_name)
     album_scrobble_count = int(scrobble_count.replace(',', '')) // int(track_count)
     return dict(
@@ -89,6 +90,7 @@ def _get_corrected_stats_for_album(album_stats):
         scrobble_count=scrobble_count,
         track_count=track_count,
         album_scrobble_count=album_scrobble_count,
+        original_position=int(original_position),
     )
 
 def correct_album_stats(stats):

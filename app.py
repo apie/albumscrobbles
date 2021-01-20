@@ -35,12 +35,20 @@ def get_user_stats(username, drange=None):
     assert username and username_exists(username)
     print(f"Get {username} {drange}")
     stats = get_album_stats(username, drange)
+    # Sort by total plays
+    sorted_stats = sorted(stats, key=lambda x: -int(x[2]))
+    #  and get the first, to get original top album.
+    original_album, original_artist, _orginal_playcount, _original_position = sorted_stats[0]
     corrected = correct_album_stats(stats)
-    sorted_list = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
+    corrected_sorted = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
-        stats=sorted_list,
+        original_top_album=dict(
+            name=original_album,
+            artist=original_artist,
+        ),
+        stats=corrected_sorted,
         ranges=(7,30,90,180,365,''),
         selected_range=drange,
     )
