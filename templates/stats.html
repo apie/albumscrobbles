@@ -34,7 +34,7 @@
       <tr>
         <td>{{ loop.index }}</td>
         <td><strong>{{stat.album_scrobble_count}}</strong></td>
-        <td>{{stat.album_name}} &mdash; {{stat.artist_name}}</td>
+        <td><a href="https://www.last.fm/music/{{stat.artist_name.replace(' ', '+')}}/_/{{stat.album_name.replace(' ', '+')}}">{{stat.album_name}}</a> &mdash; <a href="https://www.last.fm/music/{{stat.artist_name.replace(' ', '+')}}">{{stat.artist_name}}</a></td>
         <td>{{stat.scrobble_count}}</td>
         <td>{{stat.track_count}}</td>
       </tr>
