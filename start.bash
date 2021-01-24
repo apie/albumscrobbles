@@ -16,5 +16,5 @@ source venv/bin/activate
 pip3 install pip-tools
 pip-sync setup/requirements.txt
 
-gunicorn app:app --workers 2 --bind 0.0.0.0:8002 --reload --timeout 120
+gunicorn app:app --workers 5 --bind 0.0.0.0:8002 --reload --timeout 120
 
