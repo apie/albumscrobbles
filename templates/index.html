@@ -6,9 +6,21 @@
   <form class="w3-container" method="GET" action="/get_stats" onSubmit="document.getElementById('submit').disabled=true;document.getElementById('submit').value='Calculating...';document.getElementById('overlay').classList.toggle('w3-hide');">
       <label for="username">Enter your <a href="https://www.last.fm">last.fm</a> username:</label>
       <input name="range" type="hidden">
-      <input id="username" name="username" class="w3-input w3-border w3-round" type="text" required autofocus placeholder="username">
+      <input id="username" name="username" class="w3-input w3-border w3-round" type="text" required autofocus placeholder="username" autocomplete="on">
       <br>
       <input id="submit" class="w3-btn w3-theme-action w3-round" type="submit" value="Calculate">
     </form>
+    <div class="w3-margin-top">
+      {% if recent_users %}
+        Some recent users:
+        <ul class="w3-ul w3-card-4">
+        {% for user in recent_users %}
+          {% if loop.index0 < 9 and user.strip() %}
+          <li><a href="/get_stats?range=&username={{user}}">{{user}}</a></li>
+          {% endif %}
+        {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -19,21 +19,34 @@ env = Environment(
 
 from scrape import get_album_stats, correct_album_stats, username_exists
 
+
+def get_recent_users():
+    try:
+        with open('recent.txt') as f:
+            return f.readlines()
+    except FileNotFoundError:
+        return ()
+
+def add_recent_user(username):
+    with open('recent.txt', 'a') as f:
+        f.write('\n'+username)
+
 @app.route('/favicon.ico')
 def favicon():
     return app.send_static_file('favicon.ico')
 
 @app.route("/")
-@lru_cache()
 def index():
     return env.get_template('index.html').render(
-        title='Welcome!'
+        title='Welcome!',
+        recent_users=set(get_recent_users()),
     )
 
 def get_user_stats(username, drange=None):
     username = username.strip()
     assert username and username_exists(username)
     print(f"Get {username} {drange}")
+    add_recent_user(username)
     stats = get_album_stats(username, drange)
     # Sort by total plays
     sorted_stats = sorted(stats, key=lambda x: -int(x[2].replace(',', '')))
