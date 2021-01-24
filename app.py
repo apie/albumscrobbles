@@ -29,7 +29,7 @@ def get_recent_users():
 
 def add_recent_user(username):
     with open('recent.txt', 'a') as f:
-        f.write('\n'+username)
+        f.write(username+'\n')
 
 @app.route('/favicon.ico')
 def favicon():

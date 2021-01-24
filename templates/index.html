@@ -15,7 +15,7 @@
         Some recent users:
         <ul class="w3-ul w3-card-4">
         {% for user in recent_users %}
-          {% if loop.index0 < 9 and user.strip() %}
+          {% if loop.index0 < 9 %}
           <li><a href="/get_stats?range=&username={{user}}">{{user}}</a></li>
           {% endif %}
         {% endfor %}
