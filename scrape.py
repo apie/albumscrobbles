@@ -56,7 +56,7 @@ def _get_album_stats(username, drange=None):
     return json.dumps(list(list(map(lambda e: e.text.strip(), elements)) for elements in l))
 
 @file_cache_decorator()
-def _get_album_track_count(artist_name, album_name) -> str:
+def _get_album_details(artist_name, album_name) -> str:
     # What about albums that are detected incorrectly?
     # eg https://www.last.fm/music/Delain/April+Rain is recognized as the single, with only 2 tracks.
     # Maybe always add a cross check to discogs?
@@ -71,10 +71,17 @@ def _get_album_track_count(artist_name, album_name) -> str:
         track_count = dd.text_content().strip().split('track')[0].strip()
         assert track_count.isnumeric()
         assert int(track_count) > 2, 'Probably not a real album'
-        return track_count
     except (IndexError, AssertionError):
         # TODO add fallback? Discogs or something
-        return str(12) # Use some average track count
+        track_count = str(12) # Use some average track count
+
+    # search for: <a class="cover-art"><img src="*"></a>
+    try:
+        img = doc.xpath("//a[@class='cover-art']/img")[0]
+        cover_url = img.attrib['src']
+    except IndexError:
+        cover_url = ''
+    return f"{track_count},{cover_url}"
 
 
 def _get_corrected_stats_for_album(album_stats):
@@ -82,7 +89,8 @@ def _get_corrected_stats_for_album(album_stats):
     # calculate the number of album plays
     # return as a list
     album_name, artist_name, scrobble_count, original_position = album_stats
-    track_count = _get_album_track_count(artist_name, album_name)
+    details = _get_album_details(artist_name, album_name)
+    track_count, cover_url = details.split(',')
     album_scrobble_count = int(scrobble_count.replace(',', '')) // int(track_count)
     return dict(
         album_name=album_name,
@@ -91,6 +99,7 @@ def _get_corrected_stats_for_album(album_stats):
         track_count=track_count,
         album_scrobble_count=album_scrobble_count,
         original_position=int(original_position),
+        cover_url=cover_url,
     )
 
 def correct_album_stats(stats):
