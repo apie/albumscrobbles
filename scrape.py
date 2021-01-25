@@ -16,6 +16,7 @@ from functools import lru_cache
 from file_cache import file_cache_decorator
 
 TIMEOUT = 8
+MAX_ITEMS = 20
 
 session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
@@ -53,7 +54,11 @@ def _get_album_stats(username, drange=None):
         doc.xpath("//tr/td[@class='chartlist-index']"),
     )
     # Needs to be cacheable so we can not use a generator.
-    return json.dumps(list(list(map(lambda e: e.text.strip(), elements)) for elements in l))
+    return json.dumps(list(
+        x for x in (
+        list(map(lambda e: e.text.strip(), elements)) for elements in l
+        ) if int(x[3]) <= MAX_ITEMS # Do not return the full chartlist.
+    ))
 
 @file_cache_decorator()
 def _get_album_details(artist_name, album_name) -> str:
