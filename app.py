@@ -17,7 +17,7 @@ env = Environment(
     autoescape=select_autoescape(['html', 'xml'])
 )
 
-from scrape import get_album_stats, correct_album_stats, username_exists
+from scrape import get_album_stats, correct_album_stats, username_exists, get_image_base64
 
 
 def get_recent_users():
@@ -54,6 +54,7 @@ def get_user_stats(username, drange=None):
     original_album, original_artist, _orginal_playcount, _original_position = sorted_stats[0] if sorted_stats else (None,None,None,None)
     corrected = correct_album_stats(stats)
     corrected_sorted = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
+    top_album_cover_data = get_image_base64(corrected_sorted[0]['cover_url']) if corrected_sorted else ''
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
@@ -62,6 +63,7 @@ def get_user_stats(username, drange=None):
             artist=original_artist,
         ),
         stats=corrected_sorted,
+        top_album_cover_data=top_album_cover_data,
         ranges=(7,30,90,180,365,''),
         selected_range=drange,
     )

@@ -8,6 +8,7 @@
 # all time, 365, 180: 1 month
 # 90, 30, 7:  1 day
 
+import base64
 import json
 import requests
 from lxml import html
@@ -117,6 +118,12 @@ def correct_album_stats(stats):
 def username_exists(username):
     resp = session.head(f"https://www.last.fm/user/{username}")
     return resp.status_code == 200
+
+@file_cache_decorator()
+def get_image_base64(url: str) -> str:
+    print(url)
+    data = session.get(url, timeout=TIMEOUT).content
+    return base64.b64encode(data).decode('utf-8')
 
 if __name__ == "__main__":
     from pprint import pprint
