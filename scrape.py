@@ -127,4 +127,12 @@ if __name__ == "__main__":
     corrected = correct_album_stats(stats)
     print(f'Album stats for {argv[1]}')
     print(('Album', 'Artist', 'Track playcount', 'Album track count', 'Album plays'))
-    pprint(sorted(list(corrected), key=lambda x: -x['album_scrobble_count']))
+    pprint(list(
+        x for x in enumerate(
+            sorted(
+                list(corrected),
+                key=lambda x: -x['album_scrobble_count']
+            ),
+            start=1
+        )
+    ))
