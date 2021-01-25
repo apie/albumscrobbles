@@ -32,14 +32,16 @@ env = Environment(
 )
 
 from scrape import get_album_stats, correct_album_stats, username_exists, get_image_base64
+from file_cache import file_cache_decorator
 
 
+@file_cache_decorator(keep_days=1)
 def get_recent_users():
     try:
         with open('recent.txt') as f:
-            return f.readlines()
+            return f.read()
     except FileNotFoundError:
-        return ()
+        return ''
 
 def add_recent_user(username):
     with open('recent.txt', 'a') as f:
@@ -54,7 +56,7 @@ def favicon():
 def index():
     return env.get_template('index.html').render(
         title='Welcome!',
-        recent_users=get_recent_users(),
+        recent_users=get_recent_users().splitlines(),
     )
 
 @logger()
