@@ -14,8 +14,8 @@
       {% if recent_users %}
         Some recent users:
         <ul class="w3-ul w3-card-4">
-        {% for user in recent_users %}
-          {% if loop.index0 < 9 %}
+        {% for user in recent_users|reverse|unique %}
+          {% if loop.index <= 10 %}
           <li><a href="/get_stats?range=&username={{user}}">{{user}}</a></li>
           {% endif %}
         {% endfor %}

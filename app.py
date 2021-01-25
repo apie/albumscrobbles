@@ -54,7 +54,7 @@ def favicon():
 def index():
     return env.get_template('index.html').render(
         title='Welcome!',
-        recent_users=set(get_recent_users()),
+        recent_users=get_recent_users(),
     )
 
 @logger()
