@@ -9,8 +9,22 @@ from functools import lru_cache
 
 import sys
 from os import path
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 
+from datetime import datetime
+from functools import wraps
+
+
+def logger():
+    def inner(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            print(f"[{datetime.now()}] Get {func.__name__}({', '.join(arg for arg in args if arg)})")
+            return func(*args, **kwargs)
+        return wrapper
+    return inner
+
+
+sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
 app = Flask(__name__)
 env = Environment(
     loader=PackageLoader('app', 'templates'),
@@ -36,16 +50,17 @@ def favicon():
     return app.send_static_file('favicon.ico')
 
 @app.route("/")
+@logger()
 def index():
     return env.get_template('index.html').render(
         title='Welcome!',
         recent_users=set(get_recent_users()),
     )
 
+@logger()
 def get_user_stats(username, drange=None):
     username = username.strip()
     assert username and username_exists(username)
-    print(f"Get {username} {drange}")
     add_recent_user(username)
     stats = get_album_stats(username, drange)
     # Sort by total plays
