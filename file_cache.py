@@ -16,7 +16,8 @@ except AssertionError:
 
 def get_filename(*args):
     # Truncate filename to a max length
-    return '-'.join(arg.replace('/','-') for arg in args if arg)[:200]
+    filename = '-'.join(arg.replace('/','-') for arg in args if arg)[:200]
+    return filename or 'empty'
 
 def get_from_cache(*args, func_name, keep_days=None) -> str:
     filename = SUBDIR / Path(f"{func_name}/{get_filename(*args)}")
@@ -42,7 +43,7 @@ def file_cache_decorator(keep_days=None):
         def wrapper(*args, **kwargs):
             try:
                 return get_from_cache(*args, **kwargs, func_name=func.__name__, keep_days=keep_days)
-            except FileNotFoundError:
+            except (FileNotFoundError, IsADirectoryError):
                 result = func(*args, **kwargs)
                 update_cache(*args, **kwargs, func_name=func.__name__, result=result)
                 return result

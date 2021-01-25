@@ -121,6 +121,8 @@ def username_exists(username):
 
 @file_cache_decorator()
 def get_image_base64(url: str) -> str:
+    if not url:
+        return ''
     print(url)
     data = session.get(url, timeout=TIMEOUT).content
     return base64.b64encode(data).decode('utf-8')
