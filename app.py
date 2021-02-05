@@ -3,7 +3,7 @@
 # 2020-12-06
 
 
-from flask import Flask, request
+from flask import Flask, request, send_file
 from jinja2 import Environment, PackageLoader, select_autoescape
 from functools import lru_cache
 
@@ -31,7 +31,7 @@ env = Environment(
     autoescape=select_autoescape(['html', 'xml'])
 )
 
-from scrape import get_album_stats, correct_album_stats, username_exists, get_image_base64
+from scrape import get_album_stats, correct_album_stats, username_exists, cache_binary_url_and_return_path
 from file_cache import file_cache_decorator
 
 
@@ -50,6 +50,11 @@ def add_recent_user(username):
 @app.route('/favicon.ico')
 def favicon():
     return app.send_static_file('favicon.ico')
+
+@app.route('/static/cover/<path:file_name>')
+def static_cover(file_name):
+    # Undo the replace and get the file path from the cache. We use the real file path here so send_file() can use it to set the appropriate last-modified headers.
+    return send_file(cache_binary_url_and_return_path(file_name.replace('-', '/')))
 
 @app.route("/")
 @logger()
@@ -71,7 +76,6 @@ def get_user_stats(username, drange=None):
     original_album, original_artist, _orginal_playcount, _original_position = sorted_stats[0] if sorted_stats else (None,None,None,None)
     corrected = correct_album_stats(stats)
     corrected_sorted = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
-    top_album_cover_data = get_image_base64(corrected_sorted[0]['cover_url']) if corrected_sorted else ''
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
@@ -80,7 +84,8 @@ def get_user_stats(username, drange=None):
             artist=original_artist,
         ),
         stats=corrected_sorted,
-        top_album_cover_data=top_album_cover_data,
+        # Replace part of the url to be able to pass it as a file name.
+        top_album_cover_filename='/static/cover/'+corrected_sorted[0]['cover_url'].replace('/','-') if corrected_sorted else None,
         ranges=(7,30,90,180,365,''),
         selected_range=drange,
     )

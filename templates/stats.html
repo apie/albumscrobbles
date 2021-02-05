@@ -31,9 +31,9 @@
           When based on the album track count, it is:
         {% endif %}
         <div class="w3-margin-top">
-            {% if stats[0].cover_url %}
+            {% if top_album_cover_filename %}
                 <a href="https://www.last.fm/music/{{stats[0].artist_name.replace(' ', '+')}}/{{stats[0].album_name.replace(' ', '+')}}">
-                    <img src="data:image/jpeg;base64,{{top_album_cover_data}}" width="300px">
+                    <img src="{{top_album_cover_filename}}" width="300px">
                 </a>
             {% endif %}
             <h3>

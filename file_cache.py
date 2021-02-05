@@ -49,3 +49,39 @@ def file_cache_decorator(keep_days=None):
                 return result
         return wrapper
     return inner
+
+
+###### BINARY cache #######
+
+def get_from_binary_cache(*args, func_name, keep_days=None) -> bytes:
+    filename = SUBDIR / Path(f"{func_name}/{get_filename(*args)}")
+    # print(f"Getting {func_name} from file cache: {args} {keep_days}")
+    if keep_days and datetime.fromtimestamp(filename.stat().st_mtime)+timedelta(days=keep_days) < datetime.now():
+        print(f'Cache expired. Removing file. {func_name} {args}')
+        os.remove(filename)
+    with open(filename, "rb") as f:
+        # print(f'Found in cache {func_name} {args}')
+        return f.read()
+
+def update_binary_cache(*args, func_name, result: bytes):
+    assert isinstance(result, bytes), f'Cache can only be used for bytes results! Not for {type(result)}'
+    # print(f"Updating {func_name} in file cache: {args}")
+    path = SUBDIR / Path(func_name)
+    path.mkdir(parents=True, exist_ok=True)
+    with open(path / Path(get_filename(*args)), "wb") as f:
+        f.write(result)
+
+def binary_file_cache_decorator(keep_days=None, return_path=False):
+    def inner(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                result = get_from_binary_cache(*args, **kwargs, func_name=func.__name__, keep_days=keep_days)
+            except (FileNotFoundError, IsADirectoryError):
+                result = func(*args, **kwargs)
+                update_binary_cache(*args, **kwargs, func_name=func.__name__, result=result)
+            if return_path:
+                return SUBDIR / Path(f"{func.__name__}/{get_filename(*args)}")
+            return result
+        return wrapper
+    return inner

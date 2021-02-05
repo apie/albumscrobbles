@@ -14,7 +14,7 @@ import requests
 from lxml import html
 from functools import lru_cache
 
-from file_cache import file_cache_decorator
+from file_cache import file_cache_decorator, binary_file_cache_decorator
 
 TIMEOUT = 8
 MAX_ITEMS = 20
@@ -22,6 +22,10 @@ MAX_ITEMS = 20
 session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
 session.mount('https://', a)
+
+@binary_file_cache_decorator(return_path=True)
+def cache_binary_url_and_return_path(url: str) -> bytes:
+    return session.get(url, timeout=TIMEOUT).content
 
 @file_cache_decorator(keep_days=1)
 def get_album_stats_cached_one_day(username, drange=None):
