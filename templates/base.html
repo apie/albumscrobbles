@@ -7,6 +7,9 @@
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
   <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-teal.css">
   <style>
+    body {
+      max-width: 60vw;
+    }
     html,body,h1,h2,h3,h4,h5,h6 {font-family: "Roboto", sans-serif;}
     /* https://www.w3schools.com/howto/howto_css_overlay.asp */
     #overlay {
@@ -36,13 +39,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {% endblock %}
 </head>
-<body class="w3-theme-l4">
+<body class="w3-theme-dark w3-auto">
   <div class="w3-container w3-theme" id="top">
     <h1><a href="/">Albumscrobbles.com</a></h1>
   </div>
-  {% block content %}{% endblock %}
-   <div id="overlay" class="w3-hide w3-animate-opacity">
+  <div class="w3-container w3-theme-l4 w3-padding w3-auto">
+    {% block content %}{% endblock %}
+  </div>
+  <div id="overlay" class="w3-hide w3-animate-opacity">
     <div id="loader" class="w3-spin"></div>
-   </div> 
+  </div> 
 </body>
 </html>
