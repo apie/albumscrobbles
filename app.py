@@ -53,6 +53,8 @@ def favicon():
 
 @app.route('/static/cover/<path:file_name>')
 def static_cover(file_name):
+    if file_name == 'unknown.png':
+        return app.send_static_file(file_name)
     # Undo the replace and get the file path from the cache. We use the real file path here so send_file() can use it to set the appropriate last-modified headers.
     return send_file(cache_binary_url_and_return_path(file_name.replace('-', '/')))
 
@@ -76,6 +78,10 @@ def get_user_stats(username, drange=None):
     original_album, original_artist, _orginal_playcount, _original_position = sorted_stats[0] if sorted_stats else (None,None,None,None)
     corrected = correct_album_stats(stats)
     corrected_sorted = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
+    top_album_cover_filename = 'unknown.png'
+    if corrected_sorted and corrected_sorted[0] and corrected_sorted[0]['cover_url']:
+        # Replace part of the url to be able to pass it as a file name.
+        top_album_cover_filename = corrected_sorted[0]['cover_url'].replace('/','-')
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
@@ -84,8 +90,7 @@ def get_user_stats(username, drange=None):
             artist=original_artist,
         ),
         stats=corrected_sorted,
-        # Replace part of the url to be able to pass it as a file name.
-        top_album_cover_filename='/static/cover/'+corrected_sorted[0]['cover_url'].replace('/','-') if corrected_sorted else None,
+        top_album_cover_path='/static/cover/'+top_album_cover_filename,
         ranges=(7,30,90,180,365,''),
         selected_range=drange,
     )
