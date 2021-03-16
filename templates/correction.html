@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  <h3>Send a correction for {{album}} by {{artist}}.</h3>
+  <form class="w3-container" method="POST" action="/correction_post">
+      <input name="artist" type="hidden" value="{{artist}}">
+      <input name="album" type="hidden" value="{{album}}">
+      <label for="username">Enter correct track count:</label>
+      <input name="count" class="w3-input w3-border w3-round" type="number" required autofocus>
+      <input id="submit" class="w3-margin-top w3-btn w3-theme-action w3-round" type="submit" value="Send">
+    </form>
+{% endblock %}

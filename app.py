@@ -107,5 +107,25 @@ def get_stats():
         print(e)
         return f'Invalid user {username}', 404
 
+@app.route("/correction")
+def correction():
+    artist, album = request.args.get('artist'), request.args.get('album')
+    if not artist or not album:
+        return 'Artist and album required', 400
+    return env.get_template('correction.html').render(artist=artist, album=album)
+
+@app.route("/correction_post", methods=['POST'])
+def correction_post():
+    artist, album, count = request.form['artist'], request.form['album'], request.form['count']
+    correction = '\t'.join((artist, album, count))
+    with open('corrections.txt', 'a') as f:
+        f.write(correction+'\n')
+    return env.from_string('''
+{% extends "base.html" %}
+{% block content %}
+{{text}}
+{% endblock %}
+        ''').render(text='OK, thank you. Your correction will be considered.')
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
