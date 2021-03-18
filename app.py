@@ -109,15 +109,15 @@ def get_stats():
 
 @app.route("/correction")
 def correction():
-    artist, album = request.args.get('artist'), request.args.get('album')
-    if not artist or not album:
-        return 'Artist and album required', 400
-    return env.get_template('correction.html').render(artist=artist, album=album)
+    artist, album, count = request.args.get('artist'), request.args.get('album'), request.args.get('count')
+    if not artist or not album or not count:
+        return 'Artist, album and count required', 400
+    return env.get_template('correction.html').render(artist=artist, album=album, original_count=count)
 
 @app.route("/correction_post", methods=['POST'])
 def correction_post():
-    artist, album, count = request.form['artist'], request.form['album'], request.form['count']
-    correction = '\t'.join((artist, album, count))
+    artist, album, original_count, count = request.form['artist'], request.form['album'], request.form['original_count'], request.form['count']
+    correction = '\t'.join((artist, album, original_count, count))
     with open('corrections.txt', 'a') as f:
         f.write(correction+'\n')
     return env.from_string('''
