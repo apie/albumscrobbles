@@ -112,7 +112,7 @@ def correction():
     artist, album, count = request.args.get('artist'), request.args.get('album'), request.args.get('count')
     if not artist or not album or not count:
         return 'Artist, album and count required', 400
-    return env.get_template('correction.html').render(artist=artist, album=album, original_count=count)
+    return env.get_template('correction.html').render(title='Enter your suggestion', artist=artist, album=album, original_count=count)
 
 @app.route("/correction_post", methods=['POST'])
 def correction_post():
@@ -125,7 +125,7 @@ def correction_post():
 {% block content %}
 {{text}}
 {% endblock %}
-        ''').render(text='OK, thank you. Your correction will be considered.')
+        ''').render(title='Thank you for your suggestion', text='OK, thank you. Your correction will be considered.')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
