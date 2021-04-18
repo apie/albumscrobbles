@@ -31,6 +31,13 @@ env = Environment(
     autoescape=select_autoescape(['html', 'xml'])
 )
 
+from flask_apscheduler import APScheduler
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+
+
 from scrape import get_album_stats, correct_album_stats, username_exists, cache_binary_url_and_return_path
 from file_cache import file_cache_decorator
 
@@ -66,6 +73,20 @@ def index():
         recent_users=get_recent_users().splitlines(),
     )
 
+from jobssynchronizer import JobsSynchronizer
+from scrape import _get_corrected_stats_for_album
+
+def _get_corrected_stats_for_album_thread(job_synchronizer, task_id, stat):
+    result = _get_corrected_stats_for_album(stat)
+    job_synchronizer.notify_task_completion(result)
+
+def correct_album_stats_thread(stats):
+    job_synchronizer = JobsSynchronizer(len(stats))
+    for i, stat in enumerate(stats):
+        app.apscheduler.add_job(func=_get_corrected_stats_for_album_thread, trigger='date', args=[job_synchronizer, i, stat], id='j' + str(i), max_instances=10, misfire_grace_time=60)
+    job_synchronizer.wait_for_tasks_to_be_completed()
+    return job_synchronizer.get_status_list()
+
 @logger()
 def get_user_stats(username, drange=None):
     username = username.strip()
@@ -76,7 +97,7 @@ def get_user_stats(username, drange=None):
     sorted_stats = sorted(stats, key=lambda x: -int(x[2].replace(',', '')))
     #  and get the first, to get original top album.
     original_album, original_artist, _orginal_playcount, _original_position = sorted_stats[0] if sorted_stats else (None,None,None,None)
-    corrected = correct_album_stats(stats)
+    corrected = correct_album_stats_thread(stats)
     corrected_sorted = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
     top_album_cover_filename = 'unknown.png'
     if corrected_sorted and corrected_sorted[0] and corrected_sorted[0]['cover_url']:

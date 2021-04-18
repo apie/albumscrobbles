@@ -4,10 +4,12 @@
 #
 #    pip-compile
 #
+apscheduler==3.7.0        # via flask-apscheduler
 certifi==2020.12.5        # via requests
 chardet==3.0.4            # via requests
 click==7.1.2              # via flask, pip-tools
-flask==1.1.2              # via -r requirements.in
+flask-apscheduler==1.12.2  # via -r requirements.in
+flask==1.1.2              # via -r requirements.in, flask-apscheduler
 gunicorn==20.0.4          # via -r requirements.in
 idna==2.10                # via requests
 itsdangerous==1.1.0       # via flask
@@ -15,8 +17,11 @@ jinja2==2.11.2            # via flask
 lxml==4.6.2               # via -r requirements.in
 markupsafe==1.1.1         # via jinja2
 pip-tools==5.4.0          # via -r requirements.in
+python-dateutil==2.8.1    # via flask-apscheduler
+pytz==2021.1              # via apscheduler
 requests==2.25.0          # via -r requirements.in
-six==1.15.0               # via pip-tools
+six==1.15.0               # via apscheduler, pip-tools, python-dateutil
+tzlocal==2.1              # via apscheduler
 urllib3==1.26.2           # via requests
 werkzeug==1.0.1           # via flask
 
