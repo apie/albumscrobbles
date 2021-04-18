@@ -7,6 +7,7 @@ class JobsSynchronizer:
     """
 
     def __init__(self, num_tasks_to_complete):
+        assert num_tasks_to_complete > 0
         self.condition = threading.Condition()
         self.current_completed = 0
         self.status_list = []

@@ -81,6 +81,8 @@ def _get_corrected_stats_for_album_thread(job_synchronizer, task_id, stat):
     job_synchronizer.notify_task_completion(result)
 
 def correct_album_stats_thread(stats):
+    if not stats:
+        return ()
     job_synchronizer = JobsSynchronizer(len(stats))
     for i, stat in enumerate(stats):
         app.apscheduler.add_job(func=_get_corrected_stats_for_album_thread, trigger='date', args=[job_synchronizer, i, stat], id='j' + str(i), max_instances=10, misfire_grace_time=60)
