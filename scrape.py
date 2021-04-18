@@ -99,9 +99,8 @@ def _get_corrected_stats_for_album(album_stats):
     # calculate the number of album plays
     # return as a list
     album_name, artist_name, scrobble_count, original_position = album_stats
-    details = _get_album_details(artist_name, album_name)
-    track_count, cover_url = details.split(',')
-    album_scrobble_count = int(scrobble_count.replace(',', '')) // int(track_count)
+    track_count, cover_url = _get_album_details(artist_name, album_name).split(',')
+    album_scrobble_count = int(scrobble_count.replace(',', '')) / int(track_count)
     return dict(
         album_name=album_name,
         artist_name=artist_name,
