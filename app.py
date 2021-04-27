@@ -69,15 +69,26 @@ def get_user_top_albums(username):
     corrected_sorted, original_album, original_artist, top_album_cover_filename = get_user_stats(username)
     return corrected_sorted[0] if corrected_sorted else None
 
+import json
+
+@file_cache_decorator(keep_days=1)
+def get_recent_users_with_stats():
+    # get last 10 unique recent users (keep order)
+    recent_users = []
+    for u in get_recent_users().splitlines():
+        if u not in recent_users:
+            recent_users.append(u)
+        if len(recent_users) >= 10:
+            break
+    # get stats and dump to json to be able to cache it as string
+    return json.dumps(list((u, get_user_top_albums(u)) for u in reversed(recent_users)))
 
 @app.route("/")
 @logger()
 def index():
-    # Get stats for last 10 unique usernames
-    recent_users_with_stats = ((u, get_user_top_albums(u)) for u in set(get_recent_users().splitlines()[-10:]))
     return env.get_template('index.html').render(
         title='Welcome!',
-        recent_users=recent_users_with_stats
+        recent_users=json.loads(get_recent_users_with_stats())
     )
 
 from jobssynchronizer import JobsSynchronizer
