@@ -5,7 +5,6 @@
 
 from flask import Flask, request, send_file
 from jinja2 import Environment, PackageLoader, select_autoescape
-from functools import lru_cache
 
 import sys
 from os import path
@@ -44,6 +43,7 @@ from file_cache import file_cache_decorator
 
 @file_cache_decorator(keep_days=1)
 def get_recent_users():
+    # Use a file cache because we use multiple workers
     try:
         with open('recent.txt') as f:
             return f.read()
@@ -65,12 +65,19 @@ def static_cover(file_name):
     # Undo the replace and get the file path from the cache. We use the real file path here so send_file() can use it to set the appropriate last-modified headers.
     return send_file(cache_binary_url_and_return_path(file_name.replace('-', '/')))
 
+def get_user_top_albums(username):
+    corrected_sorted, original_album, original_artist, top_album_cover_filename = get_user_stats(username)
+    return corrected_sorted[0] if corrected_sorted else None
+
+
 @app.route("/")
 @logger()
 def index():
+    # Get stats for last 10 unique usernames
+    recent_users_with_stats = ((u, get_user_top_albums(u)) for u in set(get_recent_users().splitlines()[-10:]))
     return env.get_template('index.html').render(
         title='Welcome!',
-        recent_users=get_recent_users().splitlines(),
+        recent_users=recent_users_with_stats
     )
 
 from jobssynchronizer import JobsSynchronizer
