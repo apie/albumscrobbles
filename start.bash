@@ -13,6 +13,7 @@ if [ ! -d "venv" ]; then
   virtualenv --python=python3 venv
 fi
 source venv/bin/activate
+pip3 install --upgrade pip
 pip3 install pip-tools
 pip-sync setup/requirements.txt
 

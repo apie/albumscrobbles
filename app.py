@@ -18,7 +18,7 @@ def logger():
     def inner(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            print(f"[{datetime.now()}] Get {func.__name__}({', '.join(arg for arg in args if arg)})")
+            print(f"[{datetime.now()}] Call {func.__name__}({', '.join(arg for arg in args if arg)})")
             return func(*args, **kwargs)
         return wrapper
     return inner
@@ -89,7 +89,6 @@ def correct_album_stats_thread(stats):
     job_synchronizer.wait_for_tasks_to_be_completed()
     return job_synchronizer.get_status_list()
 
-@logger()
 def get_user_stats(username, drange=None):
     username = username.strip()
     assert username and username_exists(username)
@@ -105,6 +104,11 @@ def get_user_stats(username, drange=None):
     if corrected_sorted and corrected_sorted[0] and corrected_sorted[0]['cover_url']:
         # Replace part of the url to be able to pass it as a file name.
         top_album_cover_filename = corrected_sorted[0]['cover_url'].replace('/','-')
+    return corrected_sorted, original_album, original_artist, top_album_cover_filename
+
+@logger()
+def render_user_stats(username, drange=None):
+    corrected_sorted, original_album, original_artist, top_album_cover_filename = get_user_stats(username, drange)
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
@@ -125,7 +129,7 @@ def get_stats():
         return 'Username required', 400
     drange = request.args.get('range')
     try:
-        return get_user_stats(username, drange)
+        return render_user_stats(username, drange)
     except AssertionError as e:
         print(e)
         return f'Invalid user {username}', 404
