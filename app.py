@@ -75,13 +75,13 @@ import json
 def get_recent_users_with_stats():
     # get last 10 unique recent users (keep order)
     recent_users = []
-    for u in get_recent_users().splitlines():
+    for u in reversed(get_recent_users().splitlines()):
         if u not in recent_users:
             recent_users.append(u)
         if len(recent_users) >= 10:
             break
     # get stats and dump to json to be able to cache it as string
-    return json.dumps(list((u, get_user_top_albums(u)) for u in reversed(recent_users)))
+    return json.dumps(list((u, get_user_top_albums(u)) for u in recent_users))
 
 @app.route("/")
 @logger()
