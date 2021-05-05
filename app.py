@@ -110,7 +110,6 @@ def correct_album_stats_thread(stats):
 def get_user_stats(username, drange=None):
     username = username.strip()
     assert username and username_exists(username)
-    add_recent_user(username)
     stats = get_album_stats(username, drange)
     # Sort by total plays
     sorted_stats = sorted(stats, key=lambda x: -int(x[2].replace(',', '')))
@@ -126,6 +125,9 @@ def get_user_stats(username, drange=None):
 
 @logger()
 def render_user_stats(username, drange=None):
+    username = username.strip()
+    assert username and username_exists(username)
+    add_recent_user(username)
     corrected_sorted, original_album, original_artist, top_album_cover_filename = get_user_stats(username, drange)
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
