@@ -8,7 +8,7 @@ from functools import wraps
 
 try:
     # Local cache used for testing. To use it, create this subdir.
-    SUBDIR = Path('cache')
+    SUBDIR = Path(os.path.dirname(__file__)) / Path('cache')
     assert SUBDIR.exists()
 except AssertionError:
     # Default cache location

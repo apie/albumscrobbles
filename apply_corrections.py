@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+from os.path import dirname
+from pathlib import Path
 from collections import Counter
+
 import file_cache
 
-with open('corrections.txt') as f:
+with open(Path(dirname(__file__)) / 'corrections.txt') as f:
     corrections_lines = f.readlines()
 corrections = Counter(corrections_lines)
 
