@@ -18,6 +18,7 @@ from file_cache import file_cache_decorator, binary_file_cache_decorator
 
 TIMEOUT = 8
 MAX_ITEMS = 20
+PAGE_SIZE = 50
 
 session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
@@ -45,6 +46,7 @@ def get_album_stats(username, drange=None):
 def _get_album_stats(username, drange=None):
     print(f'_get_album_stats {username} {drange}')
     preset = f"LAST_{drange}_DAYS" if drange else "ALL"
+    assert MAX_ITEMS <= PAGE_SIZE, f"{MAX_ITEMS} items requested, this is not yet supported since paging is not yet implemented"
     # url to get album scrobbles for this user
     url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
     # if username does not exist this will return a 404
