@@ -11,8 +11,13 @@
 import base64
 import json
 import requests
+import re
 from lxml import html
 from functools import lru_cache
+from typing import Optional
+from random import randint
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from file_cache import file_cache_decorator, binary_file_cache_decorator
 
@@ -37,21 +42,61 @@ def get_album_stats_cached_one_month(username, drange=None):
         return _get_album_stats(username, drange)
 
 def get_album_stats(username, drange=None):
-    if drange and int(drange) < 180:
+    if drange == '999': # random date, no cache
+        retval = _get_album_stats(username, drange)
+    elif drange and int(drange) < 180:
         retval = get_album_stats_cached_one_day(username, drange)
     else:
         retval = get_album_stats_cached_one_month(username, drange)
     return json.loads(retval)
 
-def _get_album_stats(username, drange=None):
+def get_random_interval_from_library(username: str) -> str:
+    # select a random interal from the library, where the user has some data, otherwise we try another random interval
+
+    user_start_year = get_username_start_year(username)
+    today = datetime.today()
+    current_year = today.year
+
+    tries = 0
+    while tries < 10:
+        rand_year = randint(int(user_start_year), current_year-1)
+        rand_month = randint(1, 12)
+        interval_type = randint(1, 3)
+        if interval_type == 1:
+            print('trying a random month..')
+            start_date = datetime(year=rand_year, month=rand_month, day=1)
+            end_date = start_date + relativedelta(months=1)
+        elif interval_type == 2:
+            print('trying this month in history..')
+            start_date = datetime(year=rand_year, month=today.month, day=1)
+            end_date = start_date + relativedelta(months=1)
+        else:
+            print('trying a random year..')
+            start_date = datetime(year=rand_year, month=1, day=1)
+            end_date = start_date + relativedelta(years=1)
+        url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+        page = session.get(url, timeout=TIMEOUT).text
+
+        # need to test if the user has listening data in the selected interval
+        if "no-data-message" in page:
+            tries += 1
+            continue
+        # TODO find a way to return the chosen interval up the call stack
+        print(url)
+        return page
+    raise Exception('no data found')
+
+def _get_album_stats(username: str, drange: Optional[str]=None) -> str: #returns json
     print(f'_get_album_stats {username} {drange}')
-    preset = f"LAST_{drange}_DAYS" if drange else "ALL"
     assert MAX_ITEMS <= PAGE_SIZE, f"{MAX_ITEMS} items requested, this is not yet supported since paging is not yet implemented"
     # url to get album scrobbles for this user
-    url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
-    # if username does not exist this will return a 404
-    print(url)
-    page = session.get(url, timeout=TIMEOUT).text
+    if drange == '999':  # blast from the past
+        page = get_random_interval_from_library(username)
+    else:
+        preset = f"LAST_{drange}_DAYS" if drange else "ALL"
+        url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
+        print(url)
+        page = session.get(url, timeout=TIMEOUT).text
     doc = html.fromstring(page)
     # get each column of artist name, album name and number of scrobbles
     l = zip(
@@ -125,6 +170,12 @@ def username_exists(username):
     return resp.status_code == 200
 
 @file_cache_decorator()
+def get_username_start_year(username: str) -> str:
+    page = session.get(f"https://www.last.fm/user/{username}", timeout=TIMEOUT).text
+    m = re.search(r'scrobbling since \d{1,2} \w+ (\d{4})', page)
+    return m.group(1)
+
+@file_cache_decorator()
 def get_image_base64(url: str) -> str:
     if not url:
         return ''
@@ -136,18 +187,20 @@ if __name__ == "__main__":
     from pprint import pprint
     from sys import argv
     if len(argv) < 2:
-        raise Exception('Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range.')
+        raise Exception('Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range. If you provide 999, this implies a random period from your listening history.')
     if len(argv) < 3:
         drange = None
     else:
         drange = argv[2]
-        assert int(drange) in (7,30,90,180,365)
+        assert int(drange) in (7,30,90,180,365,999)
     stats = get_album_stats(argv[1], drange)
     corrected = correct_album_stats(stats)
-    print(f'Album stats for {argv[1]}')
-    print(('Album', 'Artist', 'Track playcount', 'Album track count', 'Album plays'))
+    range_str = f'the last {drange} days' if drange != '999' else 'a random month from the library (blast from the past)'
+    print(f'Album stats for {argv[1]} for {range_str}:')
+    print()
+    print(('Album', 'Artist'))
     pprint(list(
-        x for x in enumerate(
+        (i, s['album_name'], s['artist_name']) for i, s in enumerate(
             sorted(
                 list(corrected),
                 key=lambda x: -x['album_scrobble_count']
