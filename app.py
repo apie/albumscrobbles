@@ -14,6 +14,9 @@ from functools import wraps
 from typing import List
 
 
+RECENT_USERS_FILE = 'recent.txt'
+
+
 def logger():
     def inner(func):
         @wraps(func)
@@ -46,18 +49,18 @@ from file_cache import file_cache_decorator
 def get_recent_users():
     # Use a file cache because we use multiple workers
     try:
-        with open('recent.txt') as f:
+        with open(RECENT_USERS_FILE) as f:
             return f.read()
     except FileNotFoundError:
         return ''
 
 def add_recent_user(username):
-    with open('recent.txt', 'a') as f:
+    with open(RECENT_USERS_FILE, 'a') as f:
         f.write(username+'\n')
 
 def trunc_recent_user_file(latest_recent_users: List):
     # most recent user is at the start of the list, so we reverse the list to put the most recent user at the end of the file
-    truncate('recent.txt', 0)
+    truncate(RECENT_USERS_FILE, 0)
     for u in reversed(latest_recent_users):
         add_recent_user(u)
 
