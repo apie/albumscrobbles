@@ -4,8 +4,9 @@
 # Script to fetch album stats from last.fm and recalculate them based on track count per album.
 
 # Caching policy:
-# Track count: forever
-# all time, 365, 180: 1 month
+# Track count and blast from the past: forever
+# all time: 1 year
+# 365, 180: 1 month
 # 90, 30, 7:  1 day
 
 import base64
@@ -41,62 +42,63 @@ def get_album_stats_cached_one_day(username, drange=None):
 def get_album_stats_cached_one_month(username, drange=None):
         return _get_album_stats(username, drange)
 
-def get_album_stats(username, drange=None):
-    if drange == '999': # random date, no cache
-        retval = _get_album_stats(username, drange)
+@file_cache_decorator(keep_days=365)
+def get_album_stats_cached_one_year(username, drange=None):
+        return _get_album_stats(username, drange)
+
+@file_cache_decorator()
+def get_album_stats_cached(username, drange=None):
+        return _get_album_stats(username, drange)
+
+def get_album_stats(username, drange: Optional[str]=None):
+    if drange and drange.startswith('http'):
+        # blast from the past. cache forever
+        retval = get_album_stats_cached(username, drange)
     elif drange and int(drange) < 180:
         retval = get_album_stats_cached_one_day(username, drange)
-    else:
+    elif drange and int(drange) <= 365:
         retval = get_album_stats_cached_one_month(username, drange)
+    else:
+        retval = get_album_stats_cached_one_year(username, drange)
     return json.loads(retval)
 
 def get_random_interval_from_library(username: str) -> str:
-    # select a random interal from the library, where the user has some data, otherwise we try another random interval
-
+    # select a random interval from the library
     user_start_year = get_username_start_year(username)
     today = datetime.today()
     current_year = today.year
 
-    tries = 0
-    while tries < 10:
-        rand_year = randint(int(user_start_year), current_year-1)
-        rand_month = randint(1, 12)
-        interval_type = randint(1, 3)
-        if interval_type == 1:
-            print('trying a random month..')
-            start_date = datetime(year=rand_year, month=rand_month, day=1)
-            end_date = start_date + relativedelta(months=1)
-        elif interval_type == 2:
-            print('trying this month in history..')
-            start_date = datetime(year=rand_year, month=today.month, day=1)
-            end_date = start_date + relativedelta(months=1)
-        else:
-            print('trying a random year..')
-            start_date = datetime(year=rand_year, month=1, day=1)
-            end_date = start_date + relativedelta(years=1)
-        url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
-        page = session.get(url, timeout=TIMEOUT).text
-
-        # need to test if the user has listening data in the selected interval
-        if "no-data-message" in page:
-            tries += 1
-            continue
-        # TODO find a way to return the chosen interval up the call stack
-        print(url)
-        return page
-    raise Exception('no data found')
+    rand_year = randint(int(user_start_year), current_year-1)
+    rand_month = randint(1, 12)
+    interval_type = randint(1, 3)
+    if interval_type == 1:
+        name = 'a random month'
+        start_date = datetime(year=rand_year, month=rand_month, day=1)
+        end_date = start_date + relativedelta(months=1)
+    elif interval_type == 2:
+        name = 'this month in history'
+        start_date = datetime(year=rand_year, month=today.month, day=1)
+        end_date = start_date + relativedelta(months=1)
+    else:
+        name = 'a random year'
+        start_date = datetime(year=rand_year, month=1, day=1)
+        end_date = start_date + relativedelta(years=1)
+    print(f'Trying {name}...')
+    url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+    print(url)
+    return name, f'{start_date.date()} -> {end_date.date()}', url
 
 def _get_album_stats(username: str, drange: Optional[str]=None) -> str: #returns json
     print(f'_get_album_stats {username} {drange}')
     assert MAX_ITEMS <= PAGE_SIZE, f"{MAX_ITEMS} items requested, this is not yet supported since paging is not yet implemented"
-    # url to get album scrobbles for this user
-    if drange == '999':  # blast from the past
-        page = get_random_interval_from_library(username)
+    url = None
+    if drange and drange.startswith('http'):
+        url = drange
     else:
         preset = f"LAST_{drange}_DAYS" if drange else "ALL"
         url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
         print(url)
-        page = session.get(url, timeout=TIMEOUT).text
+    page = session.get(url, timeout=TIMEOUT).text
     doc = html.fromstring(page)
     # get each column of artist name, album name and number of scrobbles
     l = zip(
@@ -193,10 +195,22 @@ if __name__ == "__main__":
     else:
         drange = argv[2]
         assert int(drange) in (7,30,90,180,365,999)
-    stats = get_album_stats(argv[1], drange)
+    username = argv[1]
+    url = None
+    if drange == '999':
+        stats = []
+        tries = 0
+        while not len(stats) or tries > 10:
+            blast_name, period, url = get_random_interval_from_library(username)
+            # need to test if the user has listening data in the selected interval
+            # special case, use url as 'drange'
+            stats = get_album_stats(username, url)
+            tries += 1
+    else:
+        stats = get_album_stats(username, drange)
     corrected = correct_album_stats(stats)
-    range_str = f'the last {drange} days' if drange != '999' else 'a random month from the library (blast from the past)'
-    print(f'Album stats for {argv[1]} for {range_str}:')
+    range_str = f'the last {drange} days' if drange != '999' else f'{blast_name} ({period}) (blast from the past)'
+    print(f'Album stats for {username} for {range_str}:')
     print()
     print(('Album', 'Artist'))
     pprint(list(

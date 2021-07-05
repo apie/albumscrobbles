@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
+# By Apie
+# 2021-03-18
+# Applies corrections to album track count to the cached album details.
+
 from os.path import dirname
 from pathlib import Path
 from collections import Counter
 
 import file_cache
+
 
 with open(Path(dirname(__file__)) / 'corrections.txt') as f:
     corrections_lines = f.readlines()

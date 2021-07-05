@@ -119,7 +119,7 @@ def correct_album_stats_thread(stats):
     job_synchronizer.wait_for_tasks_to_be_completed()
     return job_synchronizer.get_status_list()
 
-def get_user_stats(username, drange=None):
+def get_user_stats(username: str, drange: str):
     username = username.strip()
     assert username and username_exists(username)
     stats = get_album_stats(username, drange)
@@ -136,7 +136,7 @@ def get_user_stats(username, drange=None):
     return corrected_sorted, original_album, original_artist, top_album_cover_filename
 
 @logger()
-def render_user_stats(username, drange=None):
+def render_user_stats(username: str, drange: str):
     username = username.strip()
     assert username and username_exists(username)
     add_recent_user(username)
