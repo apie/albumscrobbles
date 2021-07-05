@@ -12,6 +12,5 @@ pip3 install --upgrade pip
 pip3 install pip-tools
 pip-sync setup/requirements.txt
 
-rm -f recent.txt
 gunicorn app:app --workers 5 --bind 0.0.0.0:8002 --reload --timeout 120
 

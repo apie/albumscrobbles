@@ -7,10 +7,11 @@ from flask import Flask, request, send_file
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 import sys
-from os import path
+from os import path, truncate
 
 from datetime import datetime
 from functools import wraps
+from typing import List
 
 
 def logger():
@@ -54,6 +55,12 @@ def add_recent_user(username):
     with open('recent.txt', 'a') as f:
         f.write(username+'\n')
 
+def trunc_recent_user_file(latest_recent_users: List):
+    # most recent user is at the start of the list, so we reverse the list to put the most recent user at the end of the file
+    truncate('recent.txt', 0)
+    for u in reversed(latest_recent_users):
+        add_recent_user(u)
+
 @app.route('/favicon.ico')
 def favicon():
     return app.send_static_file('favicon.ico')
@@ -73,12 +80,14 @@ import json
 
 @file_cache_decorator(keep_days=1)
 def get_recent_users_with_stats():
+    # recent users are appended to file so the most recent one is at the end of the file. We reverse so that it is now at the start of the list.
     # get last 10 unique recent users (keep order)
     recent_users = []
     for u in reversed(get_recent_users().splitlines()):
         if u not in recent_users:
             recent_users.append(u)
         if len(recent_users) >= 10:
+            trunc_recent_user_file(recent_users[:10])
             break
     # get stats and dump to json to be able to cache it as string
     return json.dumps(list((u, get_user_top_albums(u)) for u in recent_users))
