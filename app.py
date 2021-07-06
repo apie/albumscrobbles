@@ -76,7 +76,7 @@ def static_cover(file_name):
     return send_file(cache_binary_url_and_return_path(file_name.replace('-', '/')))
 
 def get_user_top_albums(username):
-    corrected_sorted, original_album, original_artist, top_album_cover_filename = get_user_stats(username)
+    corrected_sorted, original_album, original_artist, top_album_cover_filename, _, _ = get_user_stats(username, None)
     return corrected_sorted[0] if corrected_sorted else None
 
 import json
