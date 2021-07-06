@@ -72,21 +72,24 @@ def get_random_interval_from_library(username: str) -> str:
     rand_month = randint(1, 12)
     interval_type = randint(1, 3)
     if interval_type == 1:
-        name = 'a random month'
+        name = 'random month'
         start_date = datetime(year=rand_year, month=rand_month, day=1)
         end_date = start_date + relativedelta(months=1)
+        date_str = start_date.strftime('%B %Y')
     elif interval_type == 2:
         name = 'this month in history'
         start_date = datetime(year=rand_year, month=today.month, day=1)
         end_date = start_date + relativedelta(months=1)
+        date_str = start_date.strftime('%B %Y')
     else:
-        name = 'a random year'
+        name = 'random year'
         start_date = datetime(year=rand_year, month=1, day=1)
         end_date = start_date + relativedelta(years=1)
+        date_str = start_date.strftime('%Y')
     print(f'Trying {name}...')
     url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
     print(url)
-    return name, f'{start_date.date()} -> {end_date.date()}', url
+    return name, date_str, url
 
 def _get_album_stats(username: str, drange: Optional[str]=None) -> str: #returns json
     print(f'_get_album_stats {username} {drange}')
@@ -185,6 +188,20 @@ def get_image_base64(url: str) -> str:
     data = session.get(url, timeout=TIMEOUT).content
     return base64.b64encode(data).decode('utf-8')
 
+def get_album_stats_inc_random(username, drange):
+    if drange == 'random':
+        url = None
+        stats = []
+        tries = 0
+        while not len(stats) or tries > 10:
+            blast_name, period, url = get_random_interval_from_library(username)
+            # need to test if the user has listening data in the selected interval
+            # special case, use url as 'drange'
+            stats = get_album_stats(username, url)
+            tries += 1
+        return stats, blast_name, period
+    return get_album_stats(username, drange), drange, drange
+
 if __name__ == "__main__":
     from pprint import pprint
     from sys import argv
@@ -194,22 +211,11 @@ if __name__ == "__main__":
         drange = None
     else:
         drange = argv[2]
-        assert int(drange) in (7,30,90,180,365,999)
+        assert drange == 'random' or int(drange) in (7,30,90,180,365)
     username = argv[1]
-    url = None
-    if drange == '999':
-        stats = []
-        tries = 0
-        while not len(stats) or tries > 10:
-            blast_name, period, url = get_random_interval_from_library(username)
-            # need to test if the user has listening data in the selected interval
-            # special case, use url as 'drange'
-            stats = get_album_stats(username, url)
-            tries += 1
-    else:
-        stats = get_album_stats(username, drange)
+    stats, blast_name, period = get_album_stats_inc_random(username, drange)
     corrected = correct_album_stats(stats)
-    range_str = f'the last {drange} days' if drange != '999' else f'{blast_name} ({period}) (blast from the past)'
+    range_str = f'the last {drange} days' if drange != 'random' else f'{blast_name} ({period}) (blast from the past)'
     print(f'Album stats for {username} for {range_str}:')
     print()
     print(('Album', 'Artist'))

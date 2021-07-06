@@ -11,7 +11,9 @@
           href="/get_stats?username={{username}}&range={{range}}"
           onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
         >
-          {% if range %}
+          {% if range == 'random' %}
+            Blast from the past
+          {% elif range %}
             Last {{range}} days
           {% else %}
             All time
@@ -23,6 +25,10 @@
   </div>
   <div class="w3-container">
     {% if stats %}
+        {% if selected_range == 'random' %}
+          <h1>Blast from the past!</h1>
+          <h3>{{blast_name|capitalize}} ({{blast_period}})</h3>
+        {% endif %}
         {% if original_top_album.artist_name == stats[0].artist and original_top_album.name == stats[0].album_name %}
           No changes! Even when based on the album track count, your top album is still:
         {% else %}

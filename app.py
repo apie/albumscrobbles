@@ -41,7 +41,7 @@ scheduler.init_app(app)
 scheduler.start()
 
 
-from scrape import get_album_stats, correct_album_stats, username_exists, cache_binary_url_and_return_path
+from scrape import get_album_stats_inc_random, correct_album_stats, username_exists, cache_binary_url_and_return_path
 from file_cache import file_cache_decorator
 
 
@@ -122,7 +122,7 @@ def correct_album_stats_thread(stats):
 def get_user_stats(username: str, drange: str):
     username = username.strip()
     assert username and username_exists(username)
-    stats = get_album_stats(username, drange)
+    stats, blast_name, period = get_album_stats_inc_random(username, drange)
     # Sort by total plays
     sorted_stats = sorted(stats, key=lambda x: -int(x[2].replace(',', '')))
     #  and get the first, to get original top album.
@@ -133,14 +133,14 @@ def get_user_stats(username: str, drange: str):
     if corrected_sorted and corrected_sorted[0] and corrected_sorted[0]['cover_url']:
         # Replace part of the url to be able to pass it as a file name.
         top_album_cover_filename = corrected_sorted[0]['cover_url'].replace('/','-')
-    return corrected_sorted, original_album, original_artist, top_album_cover_filename
+    return corrected_sorted, original_album, original_artist, top_album_cover_filename, blast_name, period
 
 @logger()
 def render_user_stats(username: str, drange: str):
     username = username.strip()
     assert username and username_exists(username)
     add_recent_user(username)
-    corrected_sorted, original_album, original_artist, top_album_cover_filename = get_user_stats(username, drange)
+    corrected_sorted, original_album, original_artist, top_album_cover_filename, blast_name, blast_period = get_user_stats(username, drange)
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
@@ -150,8 +150,10 @@ def render_user_stats(username: str, drange: str):
         ),
         stats=corrected_sorted,
         top_album_cover_path='/static/cover/'+top_album_cover_filename,
-        ranges=(7,30,90,180,365,''),
+        ranges=(7,30,90,180,365,'','random'),
         selected_range=drange,
+        blast_name=blast_name,
+        blast_period=blast_period,
     )
 
 @app.route("/get_stats")
