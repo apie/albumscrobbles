@@ -176,6 +176,7 @@ def username_exists(username):
 
 @file_cache_decorator()
 def get_username_start_year(username: str) -> str:
+    print(f'Get username start year: {username}')
     page = session.get(f"https://www.last.fm/user/{username}", timeout=TIMEOUT).text
     m = re.search(r'scrobbling since \d{1,2} \w+ (\d{4})', page)
     return m.group(1)
@@ -193,7 +194,7 @@ def get_album_stats_inc_random(username, drange):
         url = None
         stats = []
         tries = 0
-        while not len(stats) or tries > 10:
+        while not len(stats) and tries < 10:
             blast_name, period, url = get_random_interval_from_library(username)
             # need to test if the user has listening data in the selected interval
             # special case, use url as 'drange'
@@ -215,7 +216,7 @@ if __name__ == "__main__":
     username = argv[1]
     stats, blast_name, period = get_album_stats_inc_random(username, drange)
     corrected = correct_album_stats(stats)
-    range_str = f'the last {drange} days' if drange != 'random' else f'{blast_name} ({period}) (blast from the past)'
+    range_str = 'all time' if drange is None else f'the last {drange} days' if drange != 'random' else f'{blast_name} ({period}) (blast from the past)'
     print(f'Album stats for {username} for {range_str}:')
     print()
     print(('Album', 'Artist'))
