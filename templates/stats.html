@@ -48,8 +48,13 @@
         {% if stats[0].original_position > 1 %}
           Which was originally at position <em>{{stats[0].original_position}}</em>.
         {% endif %}
+    {% else %}
+        <b>
+          No listening data
+        </b>
     {% endif %}
   </div>
+  {% if stats %}
   <table class="w3-table-all w3-hoverable">
     <tr class="w3-theme-d4">
       <th>#</th>
@@ -68,5 +73,6 @@
       </tr>
     {% endfor %}
   </table>
+  {% endif %}
   <a href="#top">^ To top</a>
 {% endblock %}
