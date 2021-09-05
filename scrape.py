@@ -169,6 +169,13 @@ def correct_album_stats(stats):
         for stat in stats
     )
 
+def correct_overview_stats(stats):
+    return {
+        year: correct_album_stats(stats)
+        for year, stats in stats.items()
+    }
+
+
 @lru_cache()
 def username_exists(username):
     resp = session.head(f"https://www.last.fm/user/{username}")
@@ -189,6 +196,20 @@ def get_image_base64(url: str) -> str:
     data = session.get(url, timeout=TIMEOUT).content
     return base64.b64encode(data).decode('utf-8')
 
+def get_overview_per_year(username):
+    overview = dict()
+    start_year = int(get_username_start_year(username))
+    today = datetime.today()
+    current_year = today.year
+    for year in range(start_year, current_year):
+        start_date = datetime(year=year, month=1, day=1)
+        end_date = start_date + relativedelta(years=1)
+        date_str = start_date.strftime('%Y')
+        url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+        stats = get_album_stats(username, url)
+        overview[year] = stats if len(stats) else []
+    return overview
+
 def get_album_stats_inc_random(username, drange):
     if drange == 'random':
         url = None
@@ -201,31 +222,43 @@ def get_album_stats_inc_random(username, drange):
             stats = get_album_stats(username, url)
             tries += 1
         return stats, blast_name, period
+    elif drange == 'overview':
+        return get_overview_per_year(username), drange, drange
     return get_album_stats(username, drange), drange, drange
 
 if __name__ == "__main__":
     from pprint import pprint
     from sys import argv
     if len(argv) < 2:
-        raise Exception('Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range. If you provide 999, this implies a random period from your listening history.')
+        raise Exception('Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range. If you provide "random", this implies a random period from your listening history. If you provide "overview", this implies an overview per year.')
     if len(argv) < 3:
         drange = None
     else:
         drange = argv[2]
-        assert drange == 'random' or int(drange) in (7,30,90,180,365)
+        assert drange in ['random', 'overview'] or int(drange) in (7,30,90,180,365)
     username = argv[1]
     stats, blast_name, period = get_album_stats_inc_random(username, drange)
-    corrected = correct_album_stats(stats)
-    range_str = 'all time' if drange is None else f'the last {drange} days' if drange != 'random' else f'{blast_name} ({period}) (blast from the past)'
+    corrected = correct_album_stats(stats) if drange != 'overview' else correct_overview_stats(stats)
+    range_str = 'all time' if drange is None else f'the last {drange} days' if drange not in ['random', 'overview'] else f'{blast_name} ({period}) (blast from the past)' if drange == 'random' else 'overview per year'
     print(f'Album stats for {username} for {range_str}:')
     print()
-    print(('Album', 'Artist'))
-    pprint(list(
-        (i, s['album_name'], s['artist_name']) for i, s in enumerate(
-            sorted(
-                list(corrected),
-                key=lambda x: -x['album_scrobble_count']
-            ),
-            start=1
-        )
-    ))
+    if drange == 'overview':
+        print(('Year', 'Album', 'Artist'))
+        for year, corr in corrected.items():
+            corr_list = list(corr)
+            if not corr_list:
+                print(year)
+            else:
+                top_album = sorted(corr_list, key=lambda x: -x['album_scrobble_count'])[0]
+                pprint((year, top_album['album_name'], top_album['artist_name']))
+    else:
+        print(('Album', 'Artist'))
+        pprint(list(
+            (i, s['album_name'], s['artist_name']) for i, s in enumerate(
+                sorted(
+                    list(corrected),
+                    key=lambda x: -x['album_scrobble_count']
+                ),
+                start=1
+            )
+        ))
