@@ -160,6 +160,8 @@ def render_user_stats(username: str, drange: str):
 @app.route("/get_stats")
 def get_stats():
     username = request.args.get('username')
+    if username:
+        username = username.replace('https://www.last.fm/user/', '') # allow to enter user url as username
     if not username:
         return 'Username required', 400
     drange = request.args.get('range')
