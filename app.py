@@ -181,6 +181,8 @@ def correction():
 @app.route("/correction_post", methods=['POST'])
 def correction_post():
     artist, album, original_count, count = request.form['artist'], request.form['album'], request.form['original_count'], request.form['count']
+    if original_count == count:
+        return 'New count should be different from existing count', 400
     artist = urllib.parse.unquote_plus(artist)
     album = urllib.parse.unquote_plus(album)
     correction = '\t'.join((artist, album, original_count, count))
