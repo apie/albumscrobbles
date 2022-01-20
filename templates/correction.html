@@ -6,7 +6,7 @@
       <input name="album" type="hidden" value="{{album}}">
       <input name="original_count" type="hidden" value="{{original_count}}">
       <label for="username">Enter correct track count:</label>
-      <input name="count" class="w3-input w3-border w3-round" type="number" value="{{original_count}}" required autofocus>
+      <input name="count" class="w3-input w3-border w3-round" type="number" value="{{original_count}}" min=1 required autofocus>
       <input id="submit" class="w3-margin-top w3-btn w3-theme-action w3-round" type="submit" value="Send">
     </form>
 {% endblock %}
