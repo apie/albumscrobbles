@@ -134,7 +134,8 @@ def get_user_overview(username: str):
             year=year,
             album_name=top_album['album_name'],
             artist_name=top_album['artist_name'],
-            cover_url=top_album['cover_url'] or 'static/cover/unknown.png',
+            # Use our image proxy
+            cover_url='static/cover/'+top_album['cover_url'].replace('/','-') if top_album['cover_url'] else 'static/cover/unknown.png',
         ))
     return retval
 
