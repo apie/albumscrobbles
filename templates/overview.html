@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+    {% include 'partials/header.html' %}
+    {% if overview %}
+        <div class="w3-row-padding">
+        {% for stat in overview %}
+            <div class="w3-third">
+                <figure class="w3-center w3-padding-16 w3-margin">
+                    <a href="https://www.last.fm/music/{{stat.artist_name.replace(' ', '+')}}/{{stat.album_name.replace(' ', '+')}}">
+                        <img src="{{stat.cover_url}}" style="width:300px" title="Top album for the year {{stat.year}}: {{stat.album_name}} by {{stat.artist_name}}" class="w3-center">
+                    </a>
+                    <figcaption>{{stat.year}}</figcaption>
+                </figure>
+            </div>
+        {% endfor %}
+        </div>
+    {% else %}
+        <b>
+            No listening data
+        </b>
+    {% endif %}
+    <a href="#top">^ To top</a>
+{% endblock %}

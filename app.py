@@ -11,7 +11,7 @@ import urllib.parse
 from os import path, truncate
 
 from datetime import datetime
-from functools import wraps
+from functools import wraps, lru_cache
 from typing import List
 
 
@@ -42,7 +42,7 @@ scheduler.init_app(app)
 scheduler.start()
 
 
-from scrape import get_album_stats_inc_random, correct_album_stats, username_exists, cache_binary_url_and_return_path
+from scrape import get_album_stats_inc_random, correct_album_stats, username_exists, cache_binary_url_and_return_path, correct_overview_stats
 from file_cache import file_cache_decorator
 
 
@@ -120,6 +120,24 @@ def correct_album_stats_thread(stats):
     job_synchronizer.wait_for_tasks_to_be_completed()
     return job_synchronizer.get_status_list()
 
+@lru_cache
+def get_user_overview(username: str):
+    stats, blast_name, period = get_album_stats_inc_random(username, 'overview')
+    corrected = correct_overview_stats(stats)
+    retval = []
+    for year, corr in corrected.items():
+        corr_list = list(corr)
+        if not corr_list:
+            continue
+        top_album = sorted(corr_list, key=lambda x: -x['album_scrobble_count'])[0]
+        retval.append(dict(
+            year=year,
+            album_name=top_album['album_name'],
+            artist_name=top_album['artist_name'],
+            cover_url=top_album['cover_url'] or 'static/cover/unknown.png',
+        ))
+    return retval
+
 def get_user_stats(username: str, drange: str):
     username = username.strip()
     assert username and username_exists(username)
@@ -141,6 +159,14 @@ def render_user_stats(username: str, drange: str):
     username = username.strip()
     assert username and username_exists(username)
     add_recent_user(username)
+    if drange == 'overview':
+        overview = get_user_overview(username)
+        return env.get_template('overview.html').render(
+            title=f'Album stats for {username} (overview)',
+            username=username,
+            overview=overview,
+            selected_range=drange,
+        )
     corrected_sorted, original_album, original_artist, top_album_cover_filename, blast_name, blast_period = get_user_stats(username, drange)
     return env.get_template('stats.html').render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
@@ -151,7 +177,6 @@ def render_user_stats(username: str, drange: str):
         ),
         stats=corrected_sorted,
         top_album_cover_path='/static/cover/'+top_album_cover_filename,
-        ranges=(7,30,90,180,365,'','random'),
         selected_range=drange,
         blast_name=blast_name,
         blast_period=blast_period,

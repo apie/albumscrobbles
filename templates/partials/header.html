@@ -1,0 +1,25 @@
+<div class="w3-row">
+    <div class="w3-twothird">
+      <h3>Real album stats for <a href="https://www.last.fm/user/{{username}}">{{ username }}</a></h3>
+    </div>
+    <div class="w3-third w3-padding-16">
+      {% for range in (7,30,90,180,365,'','random','overview') %}
+        {% if selected_range == range|string %}<strong>{%endif%}
+        <a
+          href="/get_stats?username={{username}}&range={{range}}"
+          onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+        >
+          {% if range == 'random' %}
+            Blast from the past
+          {% elif range == 'overview' %}
+            Overview
+          {% elif range %}
+            Last {{range}} days
+          {% else %}
+            All time
+          {% endif %}
+        </a>
+        {% if selected_range == range|string %}</strong>{%endif%}
+      {% endfor %}
+    </div>
+</div>

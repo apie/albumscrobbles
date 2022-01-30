@@ -15,7 +15,7 @@ import requests
 import re
 from lxml import html
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, Iterable, Dict, Tuple
 from random import randint
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -50,7 +50,7 @@ def get_album_stats_cached_one_year(username, drange=None):
 def get_album_stats_cached(username, drange=None):
         return _get_album_stats(username, drange)
 
-def get_album_stats(username, drange: Optional[str]=None):
+def get_album_stats(username: str, drange: Optional[str]=None) -> Iterable:
     if drange and drange.startswith('http'):
         # blast from the past. cache forever
         retval = get_album_stats_cached(username, drange)
@@ -146,7 +146,7 @@ def _get_album_details(artist_name, album_name) -> str:
     return f"{track_count},{cover_url}"
 
 
-def _get_corrected_stats_for_album(album_stats):
+def _get_corrected_stats_for_album(album_stats: Tuple) -> Dict:
     # fetch the number of tracks on that album
     # calculate the number of album plays
     # return as a list
@@ -163,13 +163,13 @@ def _get_corrected_stats_for_album(album_stats):
         cover_url=cover_url,
     )
 
-def correct_album_stats(stats):
+def correct_album_stats(stats: Iterable) -> Iterable[Dict]:
     return (
         _get_corrected_stats_for_album(stat)
         for stat in stats
     )
 
-def correct_overview_stats(stats):
+def correct_overview_stats(stats: Dict) -> Dict[int, Iterable[Dict]]:
     return {
         year: correct_album_stats(stats)
         for year, stats in stats.items()
@@ -196,7 +196,7 @@ def get_image_base64(url: str) -> str:
     data = session.get(url, timeout=TIMEOUT).content
     return base64.b64encode(data).decode('utf-8')
 
-def get_overview_per_year(username):
+def get_overview_per_year(username: str) -> Dict[int, Iterable]:
     overview = dict()
     start_year = int(get_username_start_year(username))
     today = datetime.today()
