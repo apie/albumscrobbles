@@ -121,8 +121,8 @@ def correct_album_stats_thread(stats):
     return job_synchronizer.get_status_list()
 
 @lru_cache
-def get_user_overview(username: str):
-    stats, blast_name, period = get_album_stats_inc_random(username, 'overview')
+def get_user_overview(username: str, year: int = None):
+    stats, blast_name, period = get_album_stats_inc_random(username, 'overview', year)
     corrected = correct_overview_stats(stats)
     retval = []
     for year, corr in corrected.items():
@@ -131,7 +131,7 @@ def get_user_overview(username: str):
             continue
         top_album = sorted(corr_list, key=lambda x: -x['album_scrobble_count'])[0]
         retval.append(dict(
-            year=year,
+            per=year,
             album_name=top_album['album_name'],
             artist_name=top_album['artist_name'],
             # Use our image proxy
@@ -156,14 +156,15 @@ def get_user_stats(username: str, drange: str):
     return corrected_sorted, original_album, original_artist, top_album_cover_filename, blast_name, period
 
 @logger()
-def render_user_stats(username: str, drange: str):
+def render_user_stats(username: str, drange: str, year: str = None):
     username = username.strip()
     assert username and username_exists(username)
     add_recent_user(username)
     if drange == 'overview':
-        overview = get_user_overview(username)
+        overview = get_user_overview(username, year and int(year))
         return env.get_template('overview.html').render(
             title=f'Album stats for {username} (overview)',
+            year=year,
             username=username,
             overview=overview,
             selected_range=drange,
@@ -191,8 +192,9 @@ def get_stats():
     if not username:
         return 'Username required', 400
     drange = request.args.get('range')
+    year = drange == 'overview' and request.args.get('year')
     try:
-        return render_user_stats(username, drange)
+        return render_user_stats(username, drange, year)
     except AssertionError as e:
         print(e)
         return f'Invalid user {username}', 404
@@ -220,6 +222,12 @@ def correction_post():
 {{text}}
 {% endblock %}
         ''').render(title='Thank you for your suggestion', text='OK, thank you. Your correction will be considered.')
+
+from calendar import month_name
+def monthname(month_num):
+    return month_name[month_num]
+
+env.filters["monthname"] = monthname
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
