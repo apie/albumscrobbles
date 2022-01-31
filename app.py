@@ -162,8 +162,9 @@ def render_user_stats(username: str, drange: str, year: str = None):
     add_recent_user(username)
     if drange == 'overview':
         overview = get_user_overview(username, year and int(year))
+        t = f'overview {year}' if year else 'overview'
         return env.get_template('overview.html').render(
-            title=f'Album stats for {username} (overview)',
+            title=f'Album stats for {username} ({t})',
             year=year,
             username=username,
             overview=overview,

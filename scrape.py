@@ -32,6 +32,7 @@ session.mount('https://', a)
 
 @binary_file_cache_decorator(return_path=True)
 def cache_binary_url_and_return_path(url: str) -> bytes:
+    print('Getting '+url)
     return session.get(url, timeout=TIMEOUT).content
 
 @file_cache_decorator(keep_days=1)
