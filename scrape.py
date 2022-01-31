@@ -171,8 +171,8 @@ def correct_album_stats(stats: Iterable) -> Iterable[Dict]:
 
 def correct_overview_stats(stats: Dict) -> Dict[int, Iterable[Dict]]:
     return {
-        year: correct_album_stats(stats)
-        for year, stats in stats.items()
+        per: correct_album_stats(stats)
+        for per, stats in stats.items()
     }
 
 
@@ -204,13 +204,26 @@ def get_overview_per_year(username: str) -> Dict[int, Iterable]:
     for year in range(start_year, current_year):
         start_date = datetime(year=year, month=1, day=1)
         end_date = start_date + relativedelta(years=1)
-        date_str = start_date.strftime('%Y')
         url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
         stats = get_album_stats(username, url)
         overview[year] = stats if len(stats) else []
     return overview
 
-def get_album_stats_inc_random(username, drange):
+def get_overview_per_month(username: str, year: int) -> Dict[int, Iterable]:
+    today = datetime.today()
+    assert year < today.year, "Year should be in the past"
+    start_year = int(get_username_start_year(username))
+    assert year >= start_year, f"Account was created in {start_year}"
+    overview = dict()
+    for month in range(1, 12+1):
+        start_date = datetime(year=year, month=month, day=1)
+        end_date = start_date + relativedelta(months=1)
+        url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+        stats = get_album_stats(username, url)
+        overview[month] = stats if len(stats) else []
+    return overview
+
+def get_album_stats_inc_random(username, drange, overview_per=None):
     if drange == 'random':
         url = None
         stats = []
@@ -223,42 +236,49 @@ def get_album_stats_inc_random(username, drange):
             tries += 1
         return stats, blast_name, period
     elif drange == 'overview':
+        if overview_per:
+            year = int(overview_per)
+            return get_overview_per_month(username, year), drange, drange
         return get_overview_per_year(username), drange, drange
     return get_album_stats(username, drange), drange, drange
 
 if __name__ == "__main__":
-    from pprint import pprint
     from sys import argv
     if len(argv) < 2:
-        raise Exception('Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range. If you provide "random", this implies a random period from your listening history. If you provide "overview", this implies an overview per year.')
+        raise Exception('Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range. If you provide "random", this implies a random period from your listening history. If you provide "overview", this implies an overview per year. Optional third argument is to drill down the overview')
+    overview_per = None
     if len(argv) < 3:
         drange = None
     else:
         drange = argv[2]
         assert drange in ['random', 'overview'] or int(drange) in (7,30,90,180,365)
+        if drange == 'overview' and len(argv) == 4:
+            overview_per = argv[3]
+            assert len(overview_per) == 4, "Overview drilldown must be a year"
     username = argv[1]
-    stats, blast_name, period = get_album_stats_inc_random(username, drange)
+    stats, blast_name, period = get_album_stats_inc_random(username, drange, overview_per)
     corrected = correct_album_stats(stats) if drange != 'overview' else correct_overview_stats(stats)
     range_str = 'all time' if drange is None else f'the last {drange} days' if drange not in ['random', 'overview'] else f'{blast_name} ({period}) (blast from the past)' if drange == 'random' else 'overview per year'
     print(f'Album stats for {username} for {range_str}:')
     print()
+    ARTIST_LEN = 30
+    ALBUM_LEN = 40
     if drange == 'overview':
-        print(('Year', 'Album', 'Artist'))
-        for year, corr in corrected.items():
+        print(f"{overview_per or 'Year':>4} {'Album':<{ALBUM_LEN}} {'Artist':<{ARTIST_LEN}}")
+        for per, corr in corrected.items():
             corr_list = list(corr)
             if not corr_list:
-                print(year)
+                print(f"{per:>4}")
             else:
                 top_album = sorted(corr_list, key=lambda x: -x['album_scrobble_count'])[0]
-                pprint((year, top_album['album_name'], top_album['artist_name']))
+                print(f"{per:>4} {top_album['album_name']:<{ALBUM_LEN}} {top_album['artist_name']:<{ARTIST_LEN}}")
     else:
-        print(('Album', 'Artist'))
-        pprint(list(
-            (i, s['album_name'], s['artist_name']) for i, s in enumerate(
-                sorted(
-                    list(corrected),
-                    key=lambda x: -x['album_scrobble_count']
-                ),
-                start=1
-            )
-        ))
+        print(f"   {'Album':<{ALBUM_LEN}} {'Artist':<{ARTIST_LEN}}")
+        for i, s in enumerate(
+            sorted(
+                list(corrected),
+                key=lambda x: -x['album_scrobble_count']
+            ),
+            start=1
+        ):
+            print(f"{i:>2} {s['album_name']:<{ALBUM_LEN}} {s['artist_name']:<{ARTIST_LEN}}")
