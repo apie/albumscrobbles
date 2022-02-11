@@ -23,7 +23,7 @@ class JobsSynchronizer:
                 self.condition.notify()
 
     def wait_for_tasks_to_be_completed(self):
-        with(self.condition):
+        with (self.condition):
             self.condition.wait()
 
     def get_status_list(self):

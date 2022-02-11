@@ -3,8 +3,10 @@
 # 2020-12-06
 
 
+import json
 from flask import Flask, request, send_file
 from jinja2 import Environment, PackageLoader, select_autoescape
+from flask_apscheduler import APScheduler
 
 import sys
 import urllib.parse
@@ -13,37 +15,46 @@ from os import path, truncate
 from datetime import datetime
 from functools import wraps, lru_cache
 from typing import List
+from calendar import month_name
 
+from scrape import (
+    get_album_stats_inc_random,
+    _get_corrected_stats_for_album,
+    username_exists,
+    cache_binary_url_and_return_path,
+    correct_overview_stats,
+)
+from jobssynchronizer import JobsSynchronizer
+from file_cache import file_cache_decorator
 
-RECENT_USERS_FILE = 'recent.txt'
+RECENT_USERS_FILE = "recent.txt"
 
 
 def logger():
     def inner(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            print(f"[{datetime.now()}] Call {func.__name__}({', '.join(arg for arg in args if arg)})")
+            print(
+                f"[{datetime.now()}] Call {func.__name__}({', '.join(arg for arg in args if arg)})"
+            )
             return func(*args, **kwargs)
+
         return wrapper
+
     return inner
 
 
-sys.path.append( path.dirname( path.dirname( path.abspath(__file__) ) ) )
+sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 app = Flask(__name__)
 env = Environment(
-    loader=PackageLoader('app', 'templates'),
-    autoescape=select_autoescape(['html', 'xml'])
+    loader=PackageLoader("app", "templates"),
+    autoescape=select_autoescape(["html", "xml"]),
 )
 
-from flask_apscheduler import APScheduler
 
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
-
-
-from scrape import get_album_stats_inc_random, correct_album_stats, username_exists, cache_binary_url_and_return_path, correct_overview_stats
-from file_cache import file_cache_decorator
 
 
 @file_cache_decorator(keep_days=1)
@@ -53,11 +64,13 @@ def get_recent_users():
         with open(RECENT_USERS_FILE) as f:
             return f.read()
     except FileNotFoundError:
-        return ''
+        return ""
+
 
 def add_recent_user(username):
-    with open(RECENT_USERS_FILE, 'a') as f:
-        f.write(username+'\n')
+    with open(RECENT_USERS_FILE, "a") as f:
+        f.write(username + "\n")
+
 
 def trunc_recent_user_file(latest_recent_users: List):
     # most recent user is at the start of the list, so we reverse the list to put the most recent user at the end of the file
@@ -65,22 +78,31 @@ def trunc_recent_user_file(latest_recent_users: List):
     for u in reversed(latest_recent_users):
         add_recent_user(u)
 
-@app.route('/favicon.ico')
-def favicon():
-    return app.send_static_file('favicon.ico')
 
-@app.route('/static/cover/<path:file_name>')
+@app.route("/favicon.ico")
+def favicon():
+    return app.send_static_file("favicon.ico")
+
+
+@app.route("/static/cover/<path:file_name>")
 def static_cover(file_name):
-    if file_name == 'unknown.png':
+    if file_name == "unknown.png":
         return app.send_static_file(file_name)
     # Undo the replace and get the file path from the cache. We use the real file path here so send_file() can use it to set the appropriate last-modified headers.
-    return send_file(cache_binary_url_and_return_path(file_name.replace('-', '/')))
+    return send_file(cache_binary_url_and_return_path(file_name.replace("-", "/")))
+
 
 def get_user_top_albums(username):
-    corrected_sorted, original_album, original_artist, top_album_cover_filename, _, _ = get_user_stats(username, None)
+    (
+        corrected_sorted,
+        original_album,
+        original_artist,
+        top_album_cover_filename,
+        _,
+        _,
+    ) = get_user_stats(username, None)
     return corrected_sorted[0] if corrected_sorted else None
 
-import json
 
 @file_cache_decorator(keep_days=1)
 def get_recent_users_with_stats():
@@ -96,82 +118,111 @@ def get_recent_users_with_stats():
     # get stats and dump to json to be able to cache it as string
     return json.dumps(list((u, get_user_top_albums(u)) for u in recent_users))
 
+
 @app.route("/")
 @logger()
 def index():
-    return env.get_template('index.html').render(
-        title='Welcome!',
-        recent_users=json.loads(get_recent_users_with_stats())
+    return env.get_template("index.html").render(
+        title="Welcome!", recent_users=json.loads(get_recent_users_with_stats())
     )
 
-from jobssynchronizer import JobsSynchronizer
-from scrape import _get_corrected_stats_for_album
 
 def _get_corrected_stats_for_album_thread(job_synchronizer, task_id, stat):
     result = _get_corrected_stats_for_album(stat)
     job_synchronizer.notify_task_completion(result)
+
 
 def correct_album_stats_thread(stats):
     if not stats:
         return ()
     job_synchronizer = JobsSynchronizer(len(stats))
     for i, stat in enumerate(stats):
-        app.apscheduler.add_job(func=_get_corrected_stats_for_album_thread, trigger='date', args=[job_synchronizer, i, stat], id='j' + str(i), max_instances=10, misfire_grace_time=60)
+        app.apscheduler.add_job(
+            func=_get_corrected_stats_for_album_thread,
+            trigger="date",
+            args=[job_synchronizer, i, stat],
+            id="j" + str(i),
+            max_instances=10,
+            misfire_grace_time=60,
+        )
     job_synchronizer.wait_for_tasks_to_be_completed()
     return job_synchronizer.get_status_list()
 
+
 @lru_cache
 def get_user_overview(username: str, year: int = None):
-    stats, blast_name, period = get_album_stats_inc_random(username, 'overview', year)
+    stats, blast_name, period = get_album_stats_inc_random(username, "overview", year)
     corrected = correct_overview_stats(stats)
     retval = []
     for year, corr in corrected.items():
         corr_list = list(corr)
         if not corr_list:
             continue
-        top_album = sorted(corr_list, key=lambda x: -x['album_scrobble_count'])[0]
-        retval.append(dict(
-            per=year,
-            album_name=top_album['album_name'],
-            artist_name=top_album['artist_name'],
-            # Use our image proxy
-            cover_url='static/cover/'+top_album['cover_url'].replace('/','-') if top_album['cover_url'] else 'static/cover/unknown.png',
-        ))
+        top_album = sorted(corr_list, key=lambda x: -x["album_scrobble_count"])[0]
+        retval.append(
+            dict(
+                per=year,
+                album_name=top_album["album_name"],
+                artist_name=top_album["artist_name"],
+                # Use our image proxy
+                cover_url="static/cover/" + top_album["cover_url"].replace("/", "-")
+                if top_album["cover_url"]
+                else "static/cover/unknown.png",
+            )
+        )
     return retval
+
 
 def get_user_stats(username: str, drange: str):
     username = username.strip()
     assert username and username_exists(username)
     stats, blast_name, period = get_album_stats_inc_random(username, drange)
     # Sort by total plays
-    sorted_stats = sorted(stats, key=lambda x: -int(x[2].replace(',', '')))
+    sorted_stats = sorted(stats, key=lambda x: -int(x[2].replace(",", "")))
     #  and get the first, to get original top album.
-    original_album, original_artist, _orginal_playcount, _original_position = sorted_stats[0] if sorted_stats else (None,None,None,None)
+    original_album, original_artist, _orginal_playcount, _original_position = (
+        sorted_stats[0] if sorted_stats else (None, None, None, None)
+    )
     corrected = correct_album_stats_thread(stats)
-    corrected_sorted = sorted(list(corrected), key=lambda x: -x['album_scrobble_count'])
-    top_album_cover_filename = 'unknown.png'
-    if corrected_sorted and corrected_sorted[0] and corrected_sorted[0]['cover_url']:
+    corrected_sorted = sorted(list(corrected), key=lambda x: -x["album_scrobble_count"])
+    top_album_cover_filename = "unknown.png"
+    if corrected_sorted and corrected_sorted[0] and corrected_sorted[0]["cover_url"]:
         # Replace part of the url to be able to pass it as a file name.
-        top_album_cover_filename = corrected_sorted[0]['cover_url'].replace('/','-')
-    return corrected_sorted, original_album, original_artist, top_album_cover_filename, blast_name, period
+        top_album_cover_filename = corrected_sorted[0]["cover_url"].replace("/", "-")
+    return (
+        corrected_sorted,
+        original_album,
+        original_artist,
+        top_album_cover_filename,
+        blast_name,
+        period,
+    )
+
 
 @logger()
 def render_user_stats(username: str, drange: str, year: str = None):
     username = username.strip()
     assert username and username_exists(username)
     add_recent_user(username)
-    if drange == 'overview':
+    if drange == "overview":
         overview = get_user_overview(username, year and int(year))
-        t = f'overview {year}' if year else 'overview'
-        return env.get_template('overview.html').render(
-            title=f'Album stats for {username} ({t})',
+        t = f"overview {year}" if year else "overview"
+        return env.get_template("overview.html").render(
+            title=f"Album stats for {username} ({t})",
             year=year,
             username=username,
             overview=overview,
             selected_range=drange,
         )
-    corrected_sorted, original_album, original_artist, top_album_cover_filename, blast_name, blast_period = get_user_stats(username, drange)
-    return env.get_template('stats.html').render(
+    (
+        corrected_sorted,
+        original_album,
+        original_artist,
+        top_album_cover_filename,
+        blast_name,
+        blast_period,
+    ) = get_user_stats(username, drange)
+    return env.get_template("stats.html").render(
         title=f'Album stats for {username} ({drange+" days" if drange else "all time"})',
         username=username,
         original_top_album=dict(
@@ -179,56 +230,78 @@ def render_user_stats(username: str, drange: str, year: str = None):
             artist=original_artist,
         ),
         stats=corrected_sorted,
-        top_album_cover_path='/static/cover/'+top_album_cover_filename,
+        top_album_cover_path="/static/cover/" + top_album_cover_filename,
         selected_range=drange,
         blast_name=blast_name,
         blast_period=blast_period,
     )
 
+
 @app.route("/get_stats")
 def get_stats():
-    username = request.args.get('username')
+    username = request.args.get("username")
     if username:
-        username = username.replace('https://www.last.fm/user/', '') # allow to enter user url as username
+        username = username.replace(
+            "https://www.last.fm/user/", ""
+        )  # allow to enter user url as username
     if not username:
-        return 'Username required', 400
-    drange = request.args.get('range')
-    year = drange == 'overview' and request.args.get('year')
+        return "Username required", 400
+    drange = request.args.get("range")
+    year = drange == "overview" and request.args.get("year")
     try:
         return render_user_stats(username, drange, year)
     except AssertionError as e:
         print(e)
-        return f'Invalid user {username}', 404
+        return f"Invalid user {username}", 404
+
 
 @app.route("/correction")
 def correction():
-    artist, album, count = request.args.get('artist'), request.args.get('album'), request.args.get('count')
+    artist, album, count = (
+        request.args.get("artist"),
+        request.args.get("album"),
+        request.args.get("count"),
+    )
     if not artist or not album or not count:
-        return 'Artist, album and count required', 400
-    return env.get_template('correction.html').render(title='Enter your suggestion', artist=artist, album=album, original_count=count)
+        return "Artist, album and count required", 400
+    return env.get_template("correction.html").render(
+        title="Enter your suggestion", artist=artist, album=album, original_count=count
+    )
 
-@app.route("/correction_post", methods=['POST'])
+
+@app.route("/correction_post", methods=["POST"])
 def correction_post():
-    artist, album, original_count, count = request.form['artist'], request.form['album'], request.form['original_count'], request.form['count']
+    artist, album, original_count, count = (
+        request.form["artist"],
+        request.form["album"],
+        request.form["original_count"],
+        request.form["count"],
+    )
     if original_count == count:
-        return 'New count should be different from existing count', 400
+        return "New count should be different from existing count", 400
     artist = urllib.parse.unquote_plus(artist)
     album = urllib.parse.unquote_plus(album)
-    correction = '\t'.join((artist, album, original_count, count))
-    with open('corrections.txt', 'a') as f:
-        f.write(correction+'\n')
-    return env.from_string('''
+    correction = "\t".join((artist, album, original_count, count))
+    with open("corrections.txt", "a") as f:
+        f.write(correction + "\n")
+    return env.from_string(
+        """
 {% extends "base.html" %}
 {% block content %}
 {{text}}
 {% endblock %}
-        ''').render(title='Thank you for your suggestion', text='OK, thank you. Your correction will be considered.')
+        """
+    ).render(
+        title="Thank you for your suggestion",
+        text="OK, thank you. Your correction will be considered.",
+    )
 
-from calendar import month_name
+
 def monthname(month_num):
     return month_name[month_num]
+
 
 env.filters["monthname"] = monthname
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host="0.0.0.0", port=8000)
