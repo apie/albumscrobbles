@@ -252,7 +252,17 @@ def get_stats():
         return render_user_stats(username, drange, year)
     except AssertionError as e:
         print(e)
-        return f"Invalid user {username}", 404
+        return env.from_string(
+            """
+    {% extends "base.html" %}
+    {% block content %}
+    <h4>{{text}}</h4>
+    {% endblock %}
+            """
+        ).render(
+            title="Invalid user",
+            text=f"Invalid user {username}"
+        ), 404
 
 
 @app.route("/correction")
