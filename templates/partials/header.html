@@ -3,7 +3,7 @@
       <h3>Real album stats for <a href="https://www.last.fm/user/{{username}}">{{ username }}</a></h3>
     </div>
     <div class="w3-third w3-padding-16">
-      {% for range in (7,30,90,180,365,'','random','overview') %}
+      {% for range in (7,30,90,180,365,'','random',) %}
         {% if selected_range == range|string %}<strong>{%endif%}
         <a
           href="/get_stats?username={{username}}&range={{range}}"
