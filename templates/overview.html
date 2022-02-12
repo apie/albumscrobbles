@@ -1,43 +1,29 @@
-{% extends "base.html" %}
-{% block content %}
-    {% include 'partials/header.html' %}
-    <div class="w3-container">
-        <h4>
-            {% if not year %}
-                Overview per year
-            {% else %}
-                Overview per month for {{year}}
-            {% endif %}
-        </h4>
+{% extends "base.html" %} {% block content %} {% include 'partials/header.html'
+%}
+<div class="w3-container">
+  <h4>
+    {% if not year %} Overview per year {% else %} Overview per month for
+    {{year}} {% endif %}
+  </h4>
+</div>
+{% if not overview %}
+<div class="w3-container">
+  <b> No listening data </b>
+</div>
+{% else %}
+<div class="w3-row-padding">
+  {% for stat in overview %}
+  <div class="w3-third">
+    <div
+      hx-get="/get_stats/detail?username={{username}}&year={{year or stat.year}}&month={{stat.month}}"
+      hx-trigger="revealed"
+    >
+      loading..
     </div>
-    {% if not overview %}
-        <div class="w3-container">
-            <b>
-                No listening data
-            </b>
-        </div>
-    {% else %}
-        <div class="w3-row-padding">
-        {% for stat in overview %}
-            <div class="w3-third">
-                <figure class="w3-center w3-padding-16 w3-margin">
-                    <a href="https://www.last.fm/user/{{username}}/library/music/{{stat.artist_name.replace(' ', '+')}}/{{stat.album_name.replace(' ', '+')}}"
-                    >
-                        <img src="{{stat.cover_url}}" style="width:300px" title="Top album for {% if not year %}{{stat.per}}{% else %}{{stat.per|monthname}} {{year}}{% endif %}: {{stat.album_name}} by {{stat.artist_name}}" class="w3-center" loading="lazy">
-                    </a>
-                    <figcaption>
-                        {% if not year %}
-                            <a href="/get_stats?username={{username}}&range=overview&year={{stat.per}}"
-                                onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
-                            >{{stat.per}}</a>
-                        {% else %}
-                            {{stat.per|monthname}} {{year}}
-                        {% endif %}
-                    </figcaption>
-                </figure>
-            </div>
-        {% endfor %}
-        </div>
-    {% endif %}
-    <a href="#top">^ To top</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<a href="#top">^ To top</a>
+<script src="https://unpkg.com/htmx.org@0.3.0"></script>
 {% endblock %}

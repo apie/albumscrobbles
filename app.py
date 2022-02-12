@@ -22,7 +22,8 @@ from scrape import (
     _get_corrected_stats_for_album,
     username_exists,
     cache_binary_url_and_return_path,
-    correct_overview_stats,
+    get_album_stats_year_month,
+    get_username_start_year,
 )
 from jobssynchronizer import JobsSynchronizer
 from file_cache import file_cache_decorator
@@ -149,27 +150,66 @@ def correct_album_stats_thread(stats):
     return job_synchronizer.get_status_list()
 
 
+@app.route("/get_stats/detail")
+def render_album_stats_year_month():
+    username = request.args.get("username")
+    year = request.args.get("year")
+    year = None if year == 'None' else int(year)
+    month = request.args.get("month")
+    month = None if month in ['', 'None'] else int(month)
+    stats = get_album_stats_year_month(username, year, month)
+    per = month
+    if not month:
+        per = year
+        year = None
+    corrected = correct_album_stats_thread(stats)
+    if not corrected:
+        return ''  # No listening data in this period
+    top_album = sorted(corrected, key=lambda x: -x["album_scrobble_count"])[0]
+    stat = dict(
+        per=per,
+        album_name=top_album["album_name"],
+        artist_name=top_album["artist_name"],
+        # Use our image proxy
+        cover_url="static/cover/" + top_album["cover_url"].replace("/", "-")
+        if top_album["cover_url"]
+        else "static/cover/unknown.png",
+    )
+    return env.from_string('''
+        <figure class="w3-center w3-padding-16 w3-margin">
+            <a href="https://www.last.fm/user/{{username}}/library/music/{{stat.artist_name.replace(' ', '+')}}/{{stat.album_name.replace(' ', '+')}}"
+            >
+                <img src="{{stat.cover_url}}" style="width:300px" title="Top album for {% if not year %}{{stat.per}}{% else %}{{stat.per|monthname}} {{year}}{% endif %}: {{stat.album_name}} by {{stat.artist_name}}" class="w3-center" loading="lazy">
+            </a>
+            <figcaption>
+                {% if not year %}
+                    <a href="/get_stats?username={{username}}&range=overview&year={{stat.per}}"
+                        onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+                    >{{stat.per}}</a>
+                {% else %}
+                    {{stat.per|monthname}} {{year}}
+                {% endif %}
+            </figcaption>
+        </figure>
+    ''').render(
+        username=username,
+        year=year,
+        stat=stat,
+    )
+
+
 @lru_cache
 def get_user_overview(username: str, year: int = None):
-    stats, blast_name, period = get_album_stats_inc_random(username, "overview", year)
-    corrected = correct_overview_stats(stats)
     retval = []
-    for year, corr in corrected.items():
-        corr_list = list(corr)
-        if not corr_list:
-            continue
-        top_album = sorted(corr_list, key=lambda x: -x["album_scrobble_count"])[0]
-        retval.append(
-            dict(
-                per=year,
-                album_name=top_album["album_name"],
-                artist_name=top_album["artist_name"],
-                # Use our image proxy
-                cover_url="static/cover/" + top_album["cover_url"].replace("/", "-")
-                if top_album["cover_url"]
-                else "static/cover/unknown.png",
-            )
-        )
+    if not year:
+        start_year = int(get_username_start_year(username))
+        today = datetime.today()
+        current_year = today.year
+        for year in range(start_year, current_year):
+            retval.append(dict(year=year))
+    else:
+        for month in range(1, 12 + 1):
+            retval.append(dict(month=month))
     return retval
 
 

@@ -213,16 +213,23 @@ def get_image_base64(url: str) -> str:
     return base64.b64encode(data).decode("utf-8")
 
 
+def get_album_stats_year_month(username, year, month=None):
+    start_date = datetime(year=year, month=month or 1, day=1)
+    if month:
+        end_date = start_date + relativedelta(months=1)
+    else:
+        end_date = start_date + relativedelta(years=1)
+    url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+    return get_album_stats(username, url)
+
+
 def get_overview_per_year(username: str) -> Dict[int, Iterable]:
     overview = dict()
     start_year = int(get_username_start_year(username))
     today = datetime.today()
     current_year = today.year
     for year in range(start_year, current_year):
-        start_date = datetime(year=year, month=1, day=1)
-        end_date = start_date + relativedelta(years=1)
-        url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
-        stats = get_album_stats(username, url)
+        stats = get_album_stats_year_month(username, year)
         overview[year] = stats if len(stats) else []
     return overview
 
@@ -234,10 +241,7 @@ def get_overview_per_month(username: str, year: int) -> Dict[int, Iterable]:
     assert year >= start_year, f"Account was created in {start_year}"
     overview = dict()
     for month in range(1, 12 + 1):
-        start_date = datetime(year=year, month=month, day=1)
-        end_date = start_date + relativedelta(months=1)
-        url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
-        stats = get_album_stats(username, url)
+        stats = get_album_stats_year_month(username, year, month)
         overview[month] = stats if len(stats) else []
     return overview
 
