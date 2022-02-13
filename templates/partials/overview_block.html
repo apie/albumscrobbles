@@ -1,6 +1,6 @@
 <figure class="w3-center w3-padding-16 w3-margin">
   <a
-    href="https://www.last.fm/user/{{username}}/library/music/{{stat.artist_name.replace(' ', '+')}}/{{stat.album_name.replace(' ', '+')}}"
+    href="https://www.last.fm/user/{{username}}/library/music/{{stat.artist_name|urlencode}}/{{stat.album_name|urlencode}}"
   >
     <img
       src="{{stat.cover_url}}"

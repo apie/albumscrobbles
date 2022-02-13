@@ -19,6 +19,7 @@ from typing import Optional, Iterable, Dict, Tuple
 from random import randint
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from urllib.parse import quote_plus
 
 from file_cache import file_cache_decorator, binary_file_cache_decorator
 
@@ -139,8 +140,8 @@ def _get_album_details(artist_name, album_name) -> str:
     # eg https://www.last.fm/music/Delain/April+Rain is recognized as the single, with only 2 tracks.
     # Maybe always add a cross check to discogs?
     # For now: ignore 1-2 track albums for now and just return the average.
-    url = f"https://www.last.fm/music/{artist_name.replace(' ', '+')}/{album_name.replace(' ', '+')}"
-    print(url)
+    url = "https://www.last.fm/music/" + quote_plus(artist_name) + "/" + quote_plus(album_name)
+    print("Getting " + url)
     page = session.get(url, timeout=TIMEOUT).text
     doc = html.fromstring(page)
     # search for: <dt>Length</dt> <dd>## tracks, ##:##</dd>
