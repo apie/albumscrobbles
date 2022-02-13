@@ -122,6 +122,7 @@ def get_recent_users_with_stats():
 
 @app.route("/")
 @logger()
+@lru_cache()
 def index():
     return env.get_template("index.html").render(
         title="Welcome!", recent_users=json.loads(get_recent_users_with_stats())
