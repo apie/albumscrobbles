@@ -345,7 +345,7 @@ def correction_post():
 def monthname(month_num):
     return month_name[month_num]
 
-
+# Define custom jinja filter
 env.filters["monthname"] = monthname
 
 if __name__ == "__main__":
