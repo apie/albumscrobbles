@@ -1,0 +1,23 @@
+<figure class="w3-center w3-padding-16 w3-margin">
+  <a
+    href="https://www.last.fm/user/{{username}}/library/music/{{stat.artist_name.replace(' ', '+')}}/{{stat.album_name.replace(' ', '+')}}"
+  >
+    <img
+      src="{{stat.cover_url}}"
+      style="width: 300px; height: 300px;" {# Fixed size so that it is a square even when the image is still loading #}
+      title="Top album for {% if not year %}{{stat.per}}{% else %}{{stat.per|monthname}} {{year}}{% endif %}: {{stat.album_name}} by {{stat.artist_name}}"
+      alt="Top album for {% if not year %}{{stat.per}}{% else %}{{stat.per|monthname}} {{year}}{% endif %}: {{stat.album_name}} by {{stat.artist_name}}"
+      class="w3-center"
+      loading="lazy"
+    />
+  </a>
+  <figcaption>
+    {% if not year %}
+    <a
+      href="/get_stats?username={{username}}&range=overview&year={{stat.per}}"
+      onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+      >{{stat.per}}</a
+    >
+    {% else %} {{stat.per|monthname}} {{year}} {% endif %}
+  </figcaption>
+</figure>

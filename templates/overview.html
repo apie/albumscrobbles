@@ -16,9 +16,20 @@
   <div class="w3-third">
     <div
       hx-get="/get_stats/detail?username={{username}}&year={{year or stat.year}}&month={{stat.month}}"
-      hx-trigger="revealed"
+      hx-trigger="load" {# trigger on 'revealed' not possible since we swap elements in so you dont scroll and thus dont trigger a 'reveal'. #}
     >
-      loading..
+      <figure
+        class="w3-center w3-padding-16 w3-margin"
+      >
+        <div
+          style="width: 300px; height: 300px;" {# Fixed size so that it is a square even when the request is still loading #}
+        >
+          <i>loading..</i>
+        </div>
+        <figcaption>
+          {{stat.month and stat.month|monthname}} {{stat.year}}
+        </figcaption>
+      </figure>
     </div>
   </div>
   {% endfor %}

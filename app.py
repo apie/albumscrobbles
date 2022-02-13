@@ -157,6 +157,11 @@ def render_album_stats_year_month():
     year = None if year == 'None' else int(year)
     month = request.args.get("month")
     month = None if month in ['', 'None'] else int(month)
+    return render_overview_block(username, year, month)
+
+
+@lru_cache()
+def render_overview_block(username, year, month):
     stats = get_album_stats_year_month(username, year, month)
     per = month
     if not month:
@@ -166,32 +171,21 @@ def render_album_stats_year_month():
     if not corrected:
         return ''  # No listening data in this period
     top_album = sorted(corrected, key=lambda x: -x["album_scrobble_count"])[0]
+    if top_album["cover_url"]:
+        # Cache it already (not needed for unknown.png)
+        cache_binary_url_and_return_path(top_album["cover_url"])
+        # Use our image proxy
+        cover_url = "static/cover/" + top_album["cover_url"].replace("/", "-")
+    else:
+        cover_url = "static/cover/unknown.png"
+
     stat = dict(
         per=per,
         album_name=top_album["album_name"],
         artist_name=top_album["artist_name"],
-        # Use our image proxy
-        cover_url="static/cover/" + top_album["cover_url"].replace("/", "-")
-        if top_album["cover_url"]
-        else "static/cover/unknown.png",
+        cover_url=cover_url,
     )
-    return env.from_string('''
-        <figure class="w3-center w3-padding-16 w3-margin">
-            <a href="https://www.last.fm/user/{{username}}/library/music/{{stat.artist_name.replace(' ', '+')}}/{{stat.album_name.replace(' ', '+')}}"
-            >
-                <img src="{{stat.cover_url}}" style="width:300px" title="Top album for {% if not year %}{{stat.per}}{% else %}{{stat.per|monthname}} {{year}}{% endif %}: {{stat.album_name}} by {{stat.artist_name}}" class="w3-center" loading="lazy">
-            </a>
-            <figcaption>
-                {% if not year %}
-                    <a href="/get_stats?username={{username}}&range=overview&year={{stat.per}}"
-                        onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
-                    >{{stat.per}}</a>
-                {% else %}
-                    {{stat.per|monthname}} {{year}}
-                {% endif %}
-            </figcaption>
-        </figure>
-    ''').render(
+    return env.get_template("partials/overview_block.html").render(
         username=username,
         year=year,
         stat=stat,
