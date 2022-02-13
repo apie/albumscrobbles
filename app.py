@@ -36,7 +36,7 @@ def logger():
         @wraps(func)
         def wrapper(*args, **kwargs):
             print(
-                f"[{datetime.now()}] Call {func.__name__}({', '.join(arg for arg in args if arg)})"
+                f"[{datetime.now()}] Call {func.__name__}({', '.join(str(arg) for arg in args if arg)})"
             )
             return func(*args, **kwargs)
 
