@@ -242,6 +242,21 @@ def render_user_stats(username: str, drange: str, year: str = None):
     if drange == "overview":
         overview = get_user_overview(username, year and int(year))
         t = f"overview {year}" if year else "overview"
+        if year:  # Prevent caching incorrect data forever if smart guy changed the url.
+            today = datetime.today()
+            if int(year) >= today.year:
+                msg = "Year should be in the past"
+                return env.from_string(
+                    """
+            {% extends "base.html" %}
+            {% block content %}
+            <h4>{{text}}</h4>
+            {% endblock %}
+                    """
+                ).render(
+                    title=msg,
+                    text=msg,
+                ), 404
         return env.get_template("overview.html").render(
             title=f"Album stats for {username} ({t})",
             year=year,
