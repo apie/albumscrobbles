@@ -140,6 +140,7 @@ def _get_album_details(artist_name, album_name) -> str:
     # eg https://www.last.fm/music/Delain/April+Rain is recognized as the single, with only 2 tracks.
     # Maybe always add a cross check to discogs?
     # For now: ignore 1-2 track albums for now and just return the average.
+    artist_name = artist_name.replace('+', '%2B') # Fix for Cuby+Blizzards. + Needs to be encoded twice.
     url = "https://www.last.fm/music/" + quote_plus(artist_name) + "/" + quote_plus(album_name)
     print("Getting " + url)
     page = session.get(url, timeout=TIMEOUT).text
