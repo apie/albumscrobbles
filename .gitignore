@@ -1,5 +1,6 @@
 *.code-workspace
 .vscode/*
+.idea
 venv/
 __pycache__/
 todo.txt
