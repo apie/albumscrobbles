@@ -1,0 +1,10 @@
+#!/bin/sh
+cd ..
+GIT_DIR='.git'
+umask 002 && git reset --hard
+hash=$(git show -s --format=%H)
+d=$(git show -s --format=%ci)
+s=$(git show -s --format=%s)
+echo "Version: <a href='https://github.com/apie/albumscrobbles/commit/${hash}' title='${s}'>${d}</a>" > templates/footer.txt
+sudo systemctl reload albumscrobbles
+

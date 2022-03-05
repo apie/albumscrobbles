@@ -1,0 +1,2 @@
+# place in /etc/sudoers.d/
+telegram ALL = (root) NOPASSWD: /bin/systemctl reload albumscrobbles

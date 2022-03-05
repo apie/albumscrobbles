@@ -1,0 +1,18 @@
+[Unit]
+Description=Albumscrobbles
+After=syslog.target
+
+[Service]
+Type=simple
+User=telegram
+Group=telegram
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/home/telegram/albumscrobbles/
+ExecStart=/home/telegram/albumscrobbles/start.bash
+ExecReload=/usr/bin/pkill -HUP -f 'albumscrobbles/venv/bin/gunicorn'
+Restart=always
+
+
+[Install]
+WantedBy=multi-user.target
+
