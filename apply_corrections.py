@@ -18,9 +18,12 @@ for correction, count in corrections.items():
     if count < 2:
         continue  # Only consider corrections that are submitted multiple times.
     artist_name, album_name, original_count, count = correction.strip().split("\t")
-    original_count_cache, img_url = file_cache.get_from_cache(
-        *[artist_name, album_name], func_name="_get_album_details"
-    ).split(",")
+    try:
+        original_count_cache, img_url = file_cache.get_from_cache(
+            *[artist_name, album_name], func_name="_get_album_details"
+        ).split(",")
+    except FileNotFoundError:
+        continue  # Not in cache anymore. Cache was probably cleared
     if original_count != original_count_cache:
         continue  # Skip values that are already updated
     print("Updating: " + correction)
