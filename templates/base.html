@@ -32,6 +32,16 @@
       border-radius: 50%;
       border-top: 16px solid #3498db;
     }
+    /* https://stackoverflow.com/a/48320520 */
+    .blink {
+      animation: blinker 1s step-start infinite;
+    }
+
+    @keyframes blinker {
+      50% {
+        opacity: 0;
+      }
+    }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   {% endblock %}
