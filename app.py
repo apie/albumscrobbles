@@ -10,7 +10,7 @@ from flask_apscheduler import APScheduler
 
 import sys
 import urllib.parse
-from os import path, truncate
+from os import path, truncate, getenv
 
 from datetime import datetime
 from functools import wraps, lru_cache
@@ -357,11 +357,14 @@ def correction_post():
     )
 
 
+# Define custom jinja filters and globals
 def monthname(month_num):
     return month_name[month_num]
 
-# Define custom jinja filter
+
 env.filters["monthname"] = monthname
+env.globals["enable_goatcounter"] = bool(getenv("GOATCOUNTER"))
+##############################
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
