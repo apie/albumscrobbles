@@ -241,6 +241,9 @@ def render_user_stats(username: str, drange: str, year: str = None):
     add_recent_user(username)
     if drange == "overview":
         overview = get_user_overview(username, year and int(year))
+        # Trick to get the start_year and current_year. The function is cached so it's quick.
+        start_year = get_user_overview(username)[0]["year"]
+        current_year = get_user_overview(username)[-1]["year"]
         t = f"overview {year}" if year else "overview"
         if year:  # Prevent caching incorrect data forever if smart guy changed the url.
             today = datetime.today()
@@ -259,7 +262,9 @@ def render_user_stats(username: str, drange: str, year: str = None):
                 ), 404
         return env.get_template("overview.html").render(
             title=f"Album stats for {username} ({t})",
-            year=year,
+            year=year and int(year),
+            start_year=start_year,
+            current_year=current_year,
             username=username,
             overview=overview,
             selected_range=drange,

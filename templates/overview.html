@@ -4,6 +4,22 @@
   <h4>
     {% if not year %} Overview per year {% else %} Overview per month for
     {{year}} {% endif %}
+    {% if year and year > start_year %}
+      <a
+        href="/get_stats?username={{username}}&range=overview&year={{year - 1}}"
+        onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+        >
+        &lt;
+      </a>
+    {% endif %}
+    {% if year and year < current_year %}
+      &nbsp;<a
+        href="/get_stats?username={{username}}&range=overview&year={{year + 1}}"
+        onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+        >
+        &gt;
+      </a>
+    {% endif %}
   </h4>
 </div>
 {% if not overview %}
