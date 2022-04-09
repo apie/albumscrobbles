@@ -225,6 +225,14 @@ def get_album_stats_year_month(username, year, month=None):
     return get_album_stats(username, url)
 
 
+def get_album_stats_year_week(username, year, week):
+    # Get date of monday of the requested weeknumber. (ISO 8601)
+    start_date = datetime.strptime(f"{year} {week} 1", "%G %V %w")
+    end_date = start_date + relativedelta(weeks=1)
+    url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+    return get_album_stats(username, url)
+
+
 def get_overview_per_year(username: str) -> Dict[int, Iterable]:
     overview = dict()
     start_year = int(get_username_start_year(username))
@@ -248,6 +256,18 @@ def get_overview_per_month(username: str, year: int) -> Dict[int, Iterable]:
     return overview
 
 
+def get_overview_per_week(username: str, year: int) -> Dict[int, Iterable]:
+    today = datetime.today()
+    assert year < today.year, "Year should be in the past"
+    start_year = int(get_username_start_year(username))
+    assert year >= start_year, f"Account was created in {start_year}"
+    overview = dict()
+    for week in range(1, 53 + 1):
+        stats = get_album_stats_year_week(username, year, week)
+        overview[week] = stats if len(stats) else []
+    return overview
+
+
 def get_album_stats_inc_random(username, drange, overview_per=None):
     if drange == "random":
         url = None
@@ -262,6 +282,9 @@ def get_album_stats_inc_random(username, drange, overview_per=None):
         return stats, blast_name, period
     elif drange == "overview":
         if overview_per:
+            if overview_per.endswith('week'):
+                year = int(overview_per.replace('week', ''))
+                return get_overview_per_week(username, year), drange, drange
             year = int(overview_per)
             return get_overview_per_month(username, year), drange, drange
         return get_overview_per_year(username), drange, drange
@@ -281,9 +304,11 @@ if __name__ == "__main__":
     else:
         drange = argv[2]
         assert drange in ["random", "overview"] or int(drange) in (7, 30, 90, 180, 365)
-        if drange == "overview" and len(argv) == 4:
+        if drange == "overview" and len(argv) >= 4:
             overview_per = argv[3]
             assert len(overview_per) == 4, "Overview drilldown must be a year"
+            if len(argv) == 5:
+                overview_per += 'week'
     username = argv[1]
     stats, blast_name, period = get_album_stats_inc_random(
         username, drange, overview_per
@@ -308,7 +333,7 @@ if __name__ == "__main__":
     ALBUM_LEN = 40
     if drange == "overview":
         print(
-            f"{overview_per or 'Year':>4} {'Album':<{ALBUM_LEN}} {'Artist':<{ARTIST_LEN}}"
+            f"{overview_per[:4] if overview_per else 'Year':>4} {'Album':<{ALBUM_LEN}} {'Artist':<{ARTIST_LEN}}"
         )
         for per, corr in corrected.items():
             corr_list = list(corr)
