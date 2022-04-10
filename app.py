@@ -219,7 +219,7 @@ def get_user_overview(username: str, year: int = None, overview_per_week: bool =
                 retval.append(dict(week=week, year=year))
         else:
             for month in range(1, 12 + 1):
-                retval.append(dict(month=month))
+                retval.append(dict(month=month, year=year))
     return retval
 
 
