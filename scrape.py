@@ -78,18 +78,31 @@ def get_random_interval_from_library(username: str) -> str:
     current_year = today.year
 
     rand_year = randint(int(user_start_year), current_year - 1)
-    rand_month = randint(1, 12)
-    interval_type = randint(1, 3)
+    interval_type = randint(1, 5)
     if interval_type == 1:
         name = "random month"
+        rand_month = randint(1, 12)
         start_date = datetime(year=rand_year, month=rand_month, day=1)
         end_date = start_date + relativedelta(months=1)
         date_str = start_date.strftime("%B %Y")
     elif interval_type == 2:
+        name = "random week"
+        rand_week = randint(1, 53)
+        # Get date of monday of the requested weeknumber. (ISO 8601)
+        start_date = datetime.strptime(f"{rand_year} {rand_week} 1", "%G %V %w")
+        end_date = start_date + relativedelta(weeks=1)
+        date_str = start_date.strftime("%W %Y")
+    elif interval_type == 3:
         name = "this month in history"
         start_date = datetime(year=rand_year, month=today.month, day=1)
         end_date = start_date + relativedelta(months=1)
         date_str = start_date.strftime("%B %Y")
+    elif interval_type == 4:
+        name = "this week in history"
+        # Get date of monday of the requested weeknumber. (ISO 8601)
+        start_date = datetime.strptime(f"{rand_year} {today.strftime('%W')} 1", "%G %V %w")
+        end_date = start_date + relativedelta(weeks=1)
+        date_str = start_date.strftime("%W %Y")
     else:
         name = "random year"
         start_date = datetime(year=rand_year, month=1, day=1)
