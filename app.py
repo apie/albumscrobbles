@@ -23,6 +23,7 @@ from scrape import (
     username_exists,
     cache_binary_url_and_return_path,
     get_album_stats_year_month,
+    get_album_stats_year_week,
     get_username_start_year,
 )
 from jobssynchronizer import JobsSynchronizer
@@ -158,14 +159,23 @@ def render_album_stats_year_month():
     year = None if year == 'None' else int(year)
     month = request.args.get("month")
     month = None if month in ['', 'None'] else int(month)
-    return render_overview_block(username, year, month)
+    week = request.args.get("week")
+    week = None if week in ['', 'None'] else int(week)
+    return render_overview_block(username, year, month, week)
 
 
 @lru_cache()
-def render_overview_block(username, year, month):
-    stats = get_album_stats_year_month(username, year, month)
-    per = month
-    if not month:
+def render_overview_block(username, year, month, week):
+    per_month = False
+    if week:
+        per = week
+        stats = get_album_stats_year_week(username, year, week)
+    elif month:
+        per = month
+        stats = get_album_stats_year_month(username, year, month)
+        per_month = True
+    else:
+        stats = get_album_stats_year_month(username, year, None)
         per = year
         year = None
     corrected = correct_album_stats_thread(stats)
@@ -190,11 +200,12 @@ def render_overview_block(username, year, month):
         username=username,
         year=year,
         stat=stat,
+        per_month=per_month,
     )
 
 
 @lru_cache
-def get_user_overview(username: str, year: int = None):
+def get_user_overview(username: str, year: int = None, overview_per_week: bool = False):
     retval = []
     if not year:
         start_year = int(get_username_start_year(username))
@@ -203,8 +214,12 @@ def get_user_overview(username: str, year: int = None):
         for year in range(start_year, current_year):
             retval.append(dict(year=year))
     else:
-        for month in range(1, 12 + 1):
-            retval.append(dict(month=month))
+        if overview_per_week:
+            for week in range(1, 53 + 1):
+                retval.append(dict(week=week, year=year))
+        else:
+            for month in range(1, 12 + 1):
+                retval.append(dict(month=month))
     return retval
 
 
@@ -235,12 +250,12 @@ def get_user_stats(username: str, drange: str):
 
 
 @logger()
-def render_user_stats(username: str, drange: str, year: str = None):
+def render_user_stats(username: str, drange: str, year: str = None, overview_per_week: bool = False):
     username = username.strip()
     assert username and username_exists(username)
     add_recent_user(username)
     if drange == "overview":
-        overview = get_user_overview(username, year and int(year))
+        overview = get_user_overview(username, year and int(year), overview_per_week)
         # Trick to get the start_year and current_year. The function is cached so it's quick.
         start_year = get_user_overview(username)[0]["year"]
         current_year = get_user_overview(username)[-1]["year"]
@@ -267,6 +282,7 @@ def render_user_stats(username: str, drange: str, year: str = None):
             current_year=current_year,
             username=username,
             overview=overview,
+            per=overview_per_week and "week" or "month",
             selected_range=drange,
         )
     (
@@ -302,9 +318,12 @@ def get_stats():
     if not username:
         return "Username required", 400
     drange = request.args.get("range")
+    # TODO move user check to here
+    # TODO move overview check to here
     year = drange == "overview" and request.args.get("year")
+    overview_per_week = bool(drange == "overview" and request.args.get("per") == "week")
     try:
-        return render_user_stats(username, drange, year)
+        return render_user_stats(username, drange, year, overview_per_week)
     except AssertionError as e:
         print(e)
         return env.from_string(

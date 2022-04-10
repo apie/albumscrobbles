@@ -2,23 +2,29 @@
 %}
 <div class="w3-container">
   <h4>
-    {% if not year %} Overview per year {% else %} Overview per month for
-    {{year}} {% endif %}
-    {% if year and year > start_year %}
-      <a
-        href="/get_stats?username={{username}}&range=overview&year={{year - 1}}"
-        onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
-        >
-        &lt;
-      </a>
-    {% endif %}
-    {% if year and year < current_year %}
-      &nbsp;<a
-        href="/get_stats?username={{username}}&range=overview&year={{year + 1}}"
-        onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
-        >
-        &gt;
-      </a>
+    {% if not year %}
+      Overview per year
+    {% else %}
+    {% with base_url = "/get_stats?username="+username+"&range=overview" %}
+    {% with other_per = "month" if per == "week" else "week" %}
+      Overview per <a href="{{base_url}}&year={{year}}&per={{other_per}}">{{per}}</a> for
+      {% if year > start_year %}
+        <a
+          href="{{base_url}}&per={{per}}&year={{year - 1}}"
+          onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+          >
+          &lt;</a>
+      {% endif %}
+      {{year}}
+      {% if year < current_year %}
+        <a
+          href="{{base_url}}&per={{per}}&year={{year + 1}}"
+          onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
+          >
+          &gt;</a>
+      {% endif %}
+    {% endwith %}
+    {% endwith %}
     {% endif %}
   </h4>
 </div>
@@ -31,7 +37,7 @@
   {% for stat in overview %}
   <div class="w3-third">
     <div
-      hx-get="/get_stats/detail?username={{username}}&year={{year or stat.year}}&month={{stat.month}}"
+      hx-get="/get_stats/detail?username={{username}}&year={{year or stat.year}}&month={{stat.month}}&week={{stat.week}}"
       hx-trigger="load" {# trigger on 'revealed' not possible since we swap elements in so you dont scroll and thus dont trigger a 'reveal'. #}
     >
       <figure
@@ -43,7 +49,7 @@
           <i>loading<span class="blink">..</span></i>
         </div>
         <figcaption>
-          {{stat.month and stat.month|monthname}} {{stat.year}}
+          {{stat.month and stat.month|monthname}}{{stat.week}} {{stat.year}}
         </figcaption>
       </figure>
     </div>
