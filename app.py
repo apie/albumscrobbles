@@ -178,6 +178,8 @@ def render_overview_block(username, year, month, week):
         stats = get_album_stats_year_month(username, year, None)
         per = year
         year = None
+    if not stats:
+        return ''  # No listening data in this period
     corrected = correct_album_stats_thread(stats)
     if not corrected:
         return ''  # No listening data in this period
@@ -258,12 +260,12 @@ def render_user_stats(username: str, drange: str, year: str = None, overview_per
         overview = get_user_overview(username, year and int(year), overview_per_week)
         # Trick to get the start_year and current_year. The function is cached so it's quick.
         start_year = get_user_overview(username)[0]["year"]
-        current_year = get_user_overview(username)[-1]["year"]
+        current_year = get_user_overview(username)[-1]["year"] + 1
         t = f"overview {year}" if year else "overview"
         if year:  # Prevent caching incorrect data forever if smart guy changed the url.
             today = datetime.today()
-            if int(year) >= today.year:
-                msg = "Year should be in the past"
+            if int(year) > today.year:
+                msg = "Year should not be in the future"
                 return env.from_string(
                     """
             {% extends "base.html" %}

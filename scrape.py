@@ -229,19 +229,25 @@ def get_image_base64(url: str) -> str:
 
 
 def get_album_stats_year_month(username, year, month=None):
+    today = datetime.today()
     start_date = datetime(year=year, month=month or 1, day=1)
     if month:
         end_date = start_date + relativedelta(months=1)
     else:
         end_date = start_date + relativedelta(years=1)
+    if end_date >= today:
+        return  # Only consider stats from the past
     url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
     return get_album_stats(username, url)
 
 
 def get_album_stats_year_week(username, year, week):
+    today = datetime.today()
     # Get date of monday of the requested weeknumber. (ISO 8601)
     start_date = datetime.strptime(f"{year} {week} 1", "%G %V %w")
     end_date = start_date + relativedelta(weeks=1)
+    if end_date >= today:
+        return  # Only consider stats from the past
     url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
     return get_album_stats(username, url)
 
@@ -259,24 +265,24 @@ def get_overview_per_year(username: str) -> Dict[int, Iterable]:
 
 def get_overview_per_month(username: str, year: int) -> Dict[int, Iterable]:
     today = datetime.today()
-    assert year < today.year, "Year should be in the past"
+    assert year <= today.year, "Year should not be in the future"
     start_year = int(get_username_start_year(username))
     assert year >= start_year, f"Account was created in {start_year}"
     overview = dict()
     for month in range(1, 12 + 1):
-        stats = get_album_stats_year_month(username, year, month)
+        stats = get_album_stats_year_month(username, year, month) or []
         overview[month] = stats if len(stats) else []
     return overview
 
 
 def get_overview_per_week(username: str, year: int) -> Dict[int, Iterable]:
     today = datetime.today()
-    assert year < today.year, "Year should be in the past"
+    assert year <= today.year, "Year should not be in the future"
     start_year = int(get_username_start_year(username))
     assert year >= start_year, f"Account was created in {start_year}"
     overview = dict()
     for week in range(1, 53 + 1):
-        stats = get_album_stats_year_week(username, year, week)
+        stats = get_album_stats_year_week(username, year, week) or []
         overview[week] = stats if len(stats) else []
     return overview
 
