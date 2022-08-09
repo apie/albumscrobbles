@@ -1,4 +1,3 @@
-pip-tools
 requests
 lxml
 gunicorn
