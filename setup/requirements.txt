@@ -6,6 +6,8 @@
 #
 apscheduler==3.7.0
     # via flask-apscheduler
+build==0.8.0
+    # via pip-tools
 certifi==2020.12.5
     # via requests
 chardet==3.0.4
@@ -32,14 +34,20 @@ lxml==4.7.1
     # via -r requirements.in
 markupsafe==2.0.1
     # via jinja2
+packaging==21.3
+    # via build
 pep517==0.12.0
-    # via pip-tools
-pip-tools==6.5.1
+    # via build
+pip-tools==6.8.0
     # via -r requirements.in
+pyparsing==3.0.9
+    # via packaging
 python-dateutil==2.8.1
     # via flask-apscheduler
 pytz==2021.1
-    # via apscheduler
+    # via
+    #   apscheduler
+    #   tzlocal
 requests==2.25.0
     # via -r requirements.in
 six==1.15.0
@@ -47,7 +55,9 @@ six==1.15.0
     #   apscheduler
     #   python-dateutil
 tomli==2.0.1
-    # via pep517
+    # via
+    #   build
+    #   pep517
 tzlocal==2.1
     # via apscheduler
 urllib3==1.26.8
