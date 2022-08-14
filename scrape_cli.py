@@ -5,7 +5,7 @@ from scrape import get_album_stats_inc_random, correct_album_stats, correct_over
 def main(argv):
     if len(argv) < 2:
         raise Exception(
-            'Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range. If you provide "random", this implies a random period from your listening history. If you provide "overview", this implies an overview per year. Optional third argument is to drill down the overview'
+            'Give username as first argument. And optionally the range 7/30/90/180/365 as second argument. If you provide nothing, this implies an infinite range. If you provide "random", this implies a random period from your listening history. If you provide "overview", this implies an overview per year. Optional third argument is to drill down the overview. Optional fourth argument is to switch the overview drilldown to weekly.'
         )
     overview_per = None
     if len(argv) < 3:

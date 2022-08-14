@@ -48,6 +48,7 @@ def logger():
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 app = Flask(__name__)
+
 env = Environment(
     loader=PackageLoader("app", "templates"),
     autoescape=select_autoescape(["html", "xml"]),

@@ -213,10 +213,12 @@ def username_exists(username):
 
 @file_cache_decorator()
 def get_username_start_year(username: str) -> str:
-    print(f"Get username start year: {username}")
+    print(f"Get username start year: {username}", end=': ')
     page = session.get(f"https://www.last.fm/user/{username}", timeout=TIMEOUT).text
     m = re.search(r"scrobbling since \d{1,2} \w+ (\d{4})", page)
-    return m.group(1)
+    start_year = m.group(1)
+    print(start_year)
+    return start_year
 
 
 @file_cache_decorator()
