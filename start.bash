@@ -6,6 +6,7 @@ if [ ! -f 'app.py' ]; then
 fi
 if [ ! -f 'config.py' ]; then
   cp config.example config.py
+  touch confirmed_subscriptions.txt
   echo 'Please edit the config file: config.py'
   exit 1
 fi
