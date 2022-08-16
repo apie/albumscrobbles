@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <h3><b>{{ username }}</b>,</h3>
+  <h4> subscribe to our weekly, monthly and yearly e-mails to get your <em>real</em> last.fm album stats directly in your inbox!</h3>
+  <p>(Unsubscribe at any time)</p>
+  <form class="w3-container" method="POST" action="/subscribe_post">
+      <input name="username" type="hidden" value="{{ username }}">
+      <label for="email">Enter your e-mail address:</label>
+      <input name="email" class="w3-input w3-border w3-round" type="email" placeholder="john.doe@example.com" required autofocus>
+      <input name="robot" class="w3-check w3-border w3-round" type="checkbox" checked="true">
+      <label for="robot">Uncheck this box to show that you are not a robot</label>
+      <br>
+      <input id="submit" class="w3-margin-top w3-btn w3-theme-action w3-round" type="submit" value="Send">
+  </form>
+{% endblock %}

@@ -2,6 +2,7 @@
     <div class="w3-twothird">
       <h3>Real album stats for <a href="https://www.last.fm/user/{{username}}">{{ username }}</a></h3>
     </div>
+    {% if not disable_menu %}
     <div class="w3-third w3-padding-16">
       {% for range in (7,30,90,180,365,'','random','overview') %}
         {% if selected_range == range|string %}<strong>{%endif%}
@@ -22,4 +23,5 @@
         {% if selected_range == range|string %}</strong>{%endif%}
       {% endfor %}
     </div>
+    {% endif %}
 </div>

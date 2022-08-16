@@ -10,3 +10,5 @@ recent.txt
 corrections.txt
 corrections.html
 templates/footer.txt
+config.py
+confirmed_subscriptions.txt

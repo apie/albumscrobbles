@@ -1,0 +1,3 @@
+# Generate a nice key using secrets.token_urlsafe()
+SECRET_KEY = ''
+FROM_ADDRESS = 'noreply@albumscrobbles.com'

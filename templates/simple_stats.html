@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+  {% include 'partials/header.html' %}
+  <div class="w3-container">
+    {% if stats %}
+          When based on the album track count, your top album for {{ period_str }} is:
+        <div class="w3-margin-top">
+            {% if top_album_cover_path %}
+                <a href="https://www.last.fm/music/{{stats[0].artist_name.replace(' ', '+')}}/{{stats[0].album_name.replace(' ', '+')}}">
+                    <img src="{{top_album_cover_path}}" width="300px">
+                </a>
+            {% endif %}
+            <h3>
+              <em>{{stats[0].album_name}}</em> by <em>{{stats[0].artist_name}}</em>
+            </h3>
+        </div>
+    {% else %}
+        <b>
+          No listening data
+        </b>
+    {% endif %}
+  </div>
+  {% include 'partials/stats_table.html' %}
+  <a href="#top">^ To top</a>
+{% endblock %}

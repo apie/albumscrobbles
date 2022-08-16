@@ -225,3 +225,18 @@ def save_correction(artist, album, original_count, count):
     correction = "\t".join((artist, album, original_count, count))
     with open("corrections.txt", "a") as f:
         f.write(correction + "\n")
+
+
+def get_period_stats(username, year, month=None, week=None):
+    if week:
+        stats = get_album_stats_year_week(username, year, week) or []
+    elif month:
+        stats = get_album_stats_year_month(username, year, month) or []
+    else:
+        stats = get_album_stats_year_month(username, year) or []
+    corrected = correct_album_stats_thread(stats)
+    if not corrected:
+        return []
+    corrected.sort(key=lambda x: -x["album_scrobble_count"])
+    return corrected
+

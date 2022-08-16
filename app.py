@@ -30,6 +30,12 @@ from util import (
     get_user_overview,
     render_overview_block,
     save_correction,
+    get_period_stats,
+)
+from subscribe_util import (
+    send_confirmation_email,
+    confirm_token,
+    save_confirmed_subscription,
 )
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
@@ -78,6 +84,36 @@ def render_album_stats_year_month():
     week = request.args.get("week")
     week = None if week in ['', 'None'] else int(week)
     return render_overview_block(username, year, month, week)
+
+
+@app.route("/get_stat")
+def period_stats():
+    username = request.args.get("username")
+    year = request.args.get("year")
+    year = int(year) if year else None
+    month = request.args.get("month")
+    month = int(month) if month else None
+    week = request.args.get("week")
+    week = int(week) if week else None
+    if week:
+        period_str = f'week { week } of { year }'
+    elif month:
+        period_str = f'{ monthname(month) } of { year }'
+    else:
+        period_str = year
+    corrected_sorted = get_period_stats(username, year, month, week)
+    top_album_cover_filename = "unknown.png"
+    if corrected_sorted and corrected_sorted[0] and corrected_sorted[0]["cover_url"]:
+        # Replace part of the url to be able to pass it as a file name.
+        top_album_cover_filename = corrected_sorted[0]["cover_url"].replace("/", "-")
+    return env.get_template("simple_stats.html").render(
+        title=f'Album stats for {username}',
+        username=username,
+        period_str=period_str,
+        stats=corrected_sorted,
+        top_album_cover_path="/static/cover/" + top_album_cover_filename,
+        disable_menu=True,
+    )
 
 
 @logger()
@@ -184,6 +220,49 @@ def correction_post():
     return render_msg_template(
         title="Thank you for your suggestion",
         text="OK, thank you. Your correction will be considered.",
+    )
+
+
+@app.route("/subscribe")
+def subscribe():
+    username = request.args.get("username")
+    if not username:
+        return "username required", 400
+    return env.get_template("subscribe.html").render(
+        title="Subscribe by e-mail",
+        username=username
+    )
+
+
+@app.route("/subscribe_post", methods=["POST"])
+def subscribe_post():
+    username, email, robot = (
+        request.form["username"],
+        request.form["email"],
+        request.form.get("robot"),
+    )
+    if robot:
+        return 'Are you a robot? Only humans allowed.', 400
+    send_confirmation_email(username, email, app.config['DEBUG'])
+    return render_msg_template(
+        title="Thank you for your subscription",
+        text="Thank you for subscribing. Please check your inbox, we sent a confirmation e-mail.",
+    )
+
+
+@app.route("/subscribe_confirm")
+def subscribe_confirm():
+    token = request.args.get("token")
+    if not token:
+        return "token required", 400
+    try:
+        username, email = confirm_token(token)
+    except ValueError as e:
+        return str(e), 400
+    save_confirmed_subscription(username, email)
+    return render_msg_template(
+        title="Thank you for confirming your subscription",
+        text=f"Thank you for confirming your subscription { username }! You should start receiving e-mails soon.",
     )
 
 
