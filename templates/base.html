@@ -49,7 +49,9 @@
 <body class="w3-theme-dark w3-auto">
   <div class="w3-container w3-display-container w3-theme w3-auto" id="top">
     <h1><a href="/">Albumscrobbles.com</a></h1>
+    {% if username %}
     <span class="w3-padding w3-display-topright"><a href="/subscribe?username={{ username }}">NEW: subscribe to our website!</a></span>
+    {% endif %}
   </div>
   <div class="w3-container w3-theme-l4 w3-padding w3-auto">
     {% block content %}{% endblock %}
