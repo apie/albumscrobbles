@@ -1,0 +1,20 @@
+{% if stats %}
+  <table class="w3-table-all w3-hoverable">
+    <tr class="w3-theme-d4">
+      <th>#</th>
+      <th><strong>Album plays</strong></th>
+      <th>Album</th>
+      <th>Track plays</th>
+      <th>Album track count</th>
+    </tr>
+    {% for stat in stats %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><strong>{{stat.album_scrobble_count|round|int}}</strong></td>
+        <td><a href="https://www.last.fm/music/{{stat.artist_name|urlencode|replace('/', '%2F')}}/{{stat.album_name|urlencode|replace('/', '%2F')}}">{{stat.album_name}}</a> &mdash; <a href="https://www.last.fm/music/{{stat.artist_name|urlencode|replace('/', '%2F')}}">{{stat.artist_name}}</a></td>
+        <td>{{stat.scrobble_count}}</td>
+        <td>{{stat.track_count}}&nbsp;<a title="Wrong track count? Click to send a correction." href="/correction?artist={{stat.artist_name|urlencode}}&album={{stat.album_name|urlencode}}&count={{stat.track_count}}"><img src="/static/edit.svg" style="max-height: 0.8rem; margin-top: -0.3rem"></a></td>
+      </tr>
+    {% endfor %}
+  </table>
+{% endif %}
