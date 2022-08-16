@@ -1,6 +1,5 @@
 *.code-workspace
 *.swp
-.env
 .vscode/*
 .idea
 venv/
