@@ -175,6 +175,8 @@ def send_periodic_emails(subscriber_lines, email_type, debug):
 
 
 def get_feed_items(username):
+    from app import app
+    debug = app.config['DEBUG']
     today = datetime.date.today()
     for dn in range(365, 0, -1):
         d = today - datetime.timedelta(days=dn)
@@ -184,7 +186,7 @@ def get_feed_items(username):
                 username,
                 'yearly',
                 year=yesterday.year,
-                debug=True,
+                debug=debug,
             )
             yield dict(
                 title=title,
@@ -198,7 +200,7 @@ def get_feed_items(username):
                 'monthly',
                 year=yesterday.year,
                 month=yesterday.month,
-                debug=True,
+                debug=debug,
             )
             yield dict(
                 title=title,
@@ -215,7 +217,7 @@ def get_feed_items(username):
                 'weekly',
                 year=yesterday.year,
                 week=week,
-                debug=True,
+                debug=debug,
             )
             yield dict(
                 title=title,
