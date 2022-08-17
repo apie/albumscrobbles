@@ -130,13 +130,13 @@ For more information go to
 - { permalink }
 - or { lastfm_link }
     """
-    return subject, permalink, body
+    return subject, permalink, lastfm_link, body
 
 
 def get_stat_for_email(username, email_type, debug):
     period_name = email_type.rstrip('ly')
     period = get_most_recent_period(period_name)
-    subject, permalink, body = get_stat_for(username, email_type, period, debug)
+    subject, permalink, lastfm_link, body = get_stat_for(username, email_type, period, debug)
     body = f"""
 {subject}.
 
@@ -153,7 +153,9 @@ Denick from albumscrobbles.com
 @lru_cache()
 def get_stat_for_rss(username, email_type, year, month=None, week=None, debug=False):
     period = dict(year=year, month=month, week=week)
-    return get_stat_for(username, email_type, period, debug)
+    subject, permalink, lastfm_link, body = get_stat_for(username, email_type, period, debug)
+    body = body.replace('\n', '<br>').replace(permalink, f'<a href="{permalink}">{permalink}</a>').replace(lastfm_link, f'<a href="{lastfm_link}">{lastfm_link}</a>')
+    return subject, permalink, body
 
 
 def send_periodic_emails(subscriber_lines, email_type, debug):
