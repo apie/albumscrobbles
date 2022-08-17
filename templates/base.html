@@ -44,6 +44,9 @@
     }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% if username %}
+  <link rel="alternate" type="application/rss+xml" href="/feed/{{ username }}" title="Albumscrobbles feed for {{ username }}" />
+  {% endif %}
   {% endblock %}
 </head>
 <body class="w3-theme-dark w3-auto">

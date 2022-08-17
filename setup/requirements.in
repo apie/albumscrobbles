@@ -3,3 +3,4 @@ lxml
 gunicorn
 flask
 Flask-APScheduler
+min-rss

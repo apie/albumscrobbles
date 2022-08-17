@@ -4,7 +4,7 @@
 
 
 import json
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, make_response
 from jinja2 import Environment, PackageLoader, select_autoescape
 from flask_apscheduler import APScheduler
 
@@ -37,6 +37,8 @@ from subscribe_util import (
     confirm_token,
     save_confirmed_subscription,
 )
+from rss_util import generate_feed
+
 
 sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 app = Flask(__name__)
@@ -50,6 +52,9 @@ env = Environment(
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
+
+
+# ############# routes #######################
 
 
 @app.route("/")
@@ -264,6 +269,19 @@ def subscribe_confirm():
         title="Thank you for confirming your subscription",
         text=f"Thank you for confirming your subscription { username }! You should start receiving e-mails soon.",
     )
+
+
+@app.route("/feed/<path:username>")
+def feed(username):
+    username = username.strip()
+    if not username_exists(username):
+        return 'Unknown user', 404
+    rss_xml = generate_feed(username)
+    response = make_response(rss_xml)
+    response.headers['Content-Type'] = 'text/xml'
+    return response
+
+# ############# /routes #######################
 
 
 # Define custom jinja filters and globals

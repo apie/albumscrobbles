@@ -2,6 +2,7 @@
 *.swp
 .vscode/*
 .idea
+.flake8
 venv/
 __pycache__/
 todo.txt

@@ -1,5 +1,6 @@
 import smtplib
 import datetime
+from functools import lru_cache
 from dateutil.relativedelta import relativedelta
 from email.message import EmailMessage
 from itsdangerous import URLSafeTimedSerializer
@@ -107,30 +108,39 @@ def get_permalink(username, period_dict, debug):
     return base_url + f'/get_stat?username={ username }&year={ year }'
 
 
-def get_stat_for_email(username, email_type, debug):
+def get_stat_for(username, email_type, period, debug):
     assert email_type in EMAIL_TYPES
     period_name = email_type.rstrip('ly')
-    period = get_most_recent_period(period_name)
     stats = get_period_stats(username, period.get('year'), period.get('month'), period.get('week'))
-    nothing = None
+    top_album_str = nothing = None
     if not stats:
         nothing = f'You didnt listen to any music last { period_name }!'
-    top_album = stats[0]
-    top_album_str = f"""
-Your top album last { period_name } was
-    { top_album['album_name'] } by { top_album['artist_name'] }
-"""
+    else:
+        top_album = stats[0]
+        top_album_str = f"""
+    Your top album last { period_name } was
+        { top_album['album_name'] } by { top_album['artist_name'] }
+    """
     subject = f'{ username.capitalize() }, here are your real album stats for { get_period_str(period) }'
     permalink = get_permalink(username, period, debug)
     lastfm_link = f'https://www.last.fm/user/{ username }/listening-report/{ period_name }'
-    body = f"""
-{subject}.
-
-{ nothing or top_album_str}
+    body = f"""{ nothing or top_album_str}
 
 For more information go to
 - { permalink }
 - or { lastfm_link }
+    """
+    return subject, permalink, body
+
+
+def get_stat_for_email(username, email_type, debug):
+    period_name = email_type.rstrip('ly')
+    period = get_most_recent_period(period_name)
+    subject, permalink, body = get_stat_for(username, email_type, period, debug)
+    body = f"""
+{subject}.
+
+{ body }
 
 To unsubscribe from these emails, send me an email: d@d87.nl
 
@@ -138,6 +148,12 @@ Regards,
 Denick from albumscrobbles.com
     """
     return subject, body
+
+
+@lru_cache()
+def get_stat_for_rss(username, email_type, year, month=None, week=None, debug=False):
+    period = dict(year=year, month=month, week=week)
+    return get_stat_for(username, email_type, period, debug)
 
 
 def send_periodic_emails(subscriber_lines, email_type, debug):
@@ -156,3 +172,54 @@ def send_periodic_emails(subscriber_lines, email_type, debug):
             msg['Subject'] = subject
             msg.set_content(body)
             conn.send_message(msg)
+
+
+def get_feed_items(username):
+    today = datetime.date.today()
+    for dn in range(365, 0, -1):
+        d = today - datetime.timedelta(days=dn)
+        yesterday = d - datetime.timedelta(days=1)
+        if d.month == 1 and d.day == 1:
+            title, link, description = get_stat_for_rss(
+                username,
+                'yearly',
+                year=yesterday.year,
+                debug=True,
+            )
+            yield dict(
+                title=title,
+                link=link,
+                description=description,
+                date=d,
+            )
+        if d.day == 1:
+            title, link, description = get_stat_for_rss(
+                username,
+                'monthly',
+                year=yesterday.year,
+                month=yesterday.month,
+                debug=True,
+            )
+            yield dict(
+                title=title,
+                link=link,
+                description=description,
+                date=d,
+            )
+        if d.weekday() == 0:  # Monday
+            week = yesterday.strftime("%W")
+            if week == '00':
+                week = '53'
+            title, link, description = get_stat_for_rss(
+                username,
+                'weekly',
+                year=yesterday.year,
+                week=week,
+                debug=True,
+            )
+            yield dict(
+                title=title,
+                link=link,
+                description=description,
+                date=d,
+            )
