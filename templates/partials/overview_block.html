@@ -3,7 +3,7 @@
     href="https://www.last.fm/user/{{username}}/library/music/{{stat.artist_name|replace('+', '%2B')|urlencode|replace('/', '%2F')}}/{{stat.album_name|replace('+', '%2B')|urlencode|replace('/', '%2F')}}"
   >
     <img
-      src="{{stat.cover_url}}"
+      src="/{{stat.cover_url}}"
       style="width: 300px; height: 300px;" {# Fixed size so that it is a square even when the image is still loading #}
       title="Top album for {% if not year %}{{stat.per}}{% elif per_month %}{{stat.per|monthname}} {{year}}{% else %}{{stat.per}} {{year}}{% endif %}: {{stat.album_name}} by {{stat.artist_name}}"
       alt="Top album for {% if not year %}{{stat.per}}{% elif per_month %}{{stat.per|monthname}} {{year}}{% else %}{{stat.per}} {{year}}{% endif %}: {{stat.album_name}} by {{stat.artist_name}}"
