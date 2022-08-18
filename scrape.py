@@ -108,6 +108,8 @@ def get_random_interval_from_library(username: str) -> str:
         start_date = datetime(year=rand_year, month=1, day=1)
         end_date = start_date + relativedelta(years=1)
         date_str = start_date.strftime("%Y")
+    # Go back one day because the last.fm query is inclusive
+    end_date -= relativedelta(days=1)
     print(f"Trying {name}...")
     url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
     print(url)
