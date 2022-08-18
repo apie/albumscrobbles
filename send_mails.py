@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import click
+import os
+from pathlib import Path
 
 from subscribe_util import send_periodic_emails, EMAIL_TYPES
 
@@ -10,7 +12,8 @@ from subscribe_util import send_periodic_emails, EMAIL_TYPES
 def send_emails(email_type, debug):
     """Sends the periodic emails to the subscribers"""
 
-    with open("confirmed_subscriptions.txt", "r") as f:
+    confirmed_subscriptions_file = Path(os.path.dirname(__file__)) / Path("confirmed_subscriptions.txt")
+    with open(confirmed_subscriptions_file, "r") as f:
         subscriber_lines = f.readlines()
         send_periodic_emails((
             subscriber.strip().split("\t")
