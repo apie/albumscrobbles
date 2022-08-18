@@ -239,4 +239,3 @@ def get_period_stats(username, year, month=None, week=None):
         return []
     corrected.sort(key=lambda x: -x["album_scrobble_count"])
     return corrected
-
