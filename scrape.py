@@ -241,7 +241,7 @@ def get_album_stats_year_month(username, year, month=None):
         end_date = start_date + relativedelta(years=1)
     # Go back one day because the last.fm query is inclusive
     end_date -= relativedelta(days=1)
-    if end_date >= today:
+    if end_date.date() >= today.date():
         return  # Only consider stats from the past
     url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
     return get_album_stats(username, url)
@@ -254,7 +254,7 @@ def get_album_stats_year_week(username, year, week):
     end_date = start_date + relativedelta(weeks=1)
     # Go back one day because the last.fm query is inclusive
     end_date -= relativedelta(days=1)
-    if end_date >= today:
+    if end_date.date() >= today.date():
         return  # Only consider stats from the past
     url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
     return get_album_stats(username, url)
