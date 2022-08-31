@@ -96,16 +96,19 @@ def get_user_top_albums(username):
 @file_cache_decorator(keep_days=1)
 def get_recent_users_with_stats():
     # recent users are appended to file so the most recent one is at the end of the file. We reverse so that it is now at the start of the list.
-    # get last 10 unique recent users (keep order)
+    # get last 10 unique recent users with stats (keep order)
     recent_users = []
+    recent_stats = []
     for u in reversed(get_recent_users().splitlines()):
         if u not in recent_users:
-            recent_users.append(u)
+            if stats := get_user_top_albums(u):
+                recent_users.append(u)
+                recent_stats.append((u, stats))
         if len(recent_users) >= 10:
             trunc_recent_user_file(recent_users[:10])
             break
-    # get stats and dump to json to be able to cache it as string
-    return json.dumps(list((u, get_user_top_albums(u)) for u in recent_users))
+    # dump to json to be able to cache it as string
+    return json.dumps(recent_stats)
 
 
 def _get_corrected_stats_for_album_thread(job_synchronizer, task_id, stat):
