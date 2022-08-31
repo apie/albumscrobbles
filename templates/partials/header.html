@@ -11,9 +11,13 @@
           onClick="document.getElementById('overlay').classList.toggle('w3-hide');"
         >
           {% if range == 'random' %}
+            {% if enable_blastfromthepast %}
             Blast from the past
+            {% endif %}
           {% elif range == 'overview' %}
+            {% if enable_overview %}
             Overview
+            {% endif %}
           {% elif range %}
             Last {{range}} days
           {% else %}

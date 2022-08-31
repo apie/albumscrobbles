@@ -291,6 +291,9 @@ def monthname(month_num):
 
 env.filters["monthname"] = monthname
 env.globals["enable_goatcounter"] = bool(getenv("GOATCOUNTER"))
+env.globals["enable_blastfromthepast"] = bool(getenv("BLASTFROMTHEPAST"))
+env.globals["enable_overview"] = bool(getenv("OVERVIEW"))
+env.globals["enable_subscription"] = bool(getenv("SUBSCRIPTION"))
 ##############################
 
 
