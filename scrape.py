@@ -250,6 +250,7 @@ def get_album_stats_year_month(username, year, month=None):
 
 
 def get_album_stats_year_week(username, year, week):
+    # Rename dt vars and refactor this and the above function to 3 separate functions for 1 base function
     today = datetime.today()
     # Get date of monday of the requested weeknumber. (ISO 8601)
     start_date = datetime.strptime(f"{year} {week} 1", "%G %V %w")

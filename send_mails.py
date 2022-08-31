@@ -22,5 +22,6 @@ def send_emails(email_type, debug):
 
     print('Done.')
 
+
 if __name__ == '__main__':
     send_emails()
