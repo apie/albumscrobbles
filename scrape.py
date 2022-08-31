@@ -130,7 +130,9 @@ def _get_album_stats(
         preset = f"LAST_{drange}_DAYS" if drange else "ALL"
         url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
         print(url)
-    page = session.get(url, timeout=TIMEOUT).text
+    resp = session.get(url, timeout=TIMEOUT)
+    resp.raise_for_status()
+    page = resp.text
     doc = html.fromstring(page)
     # get each column of artist name, album name and number of scrobbles
     data = zip(
