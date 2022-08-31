@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from scrape import get_album_stats_inc_random, correct_album_stats, correct_overview_stats
 
 

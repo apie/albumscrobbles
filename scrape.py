@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # By Apie
 # 2020-12-05
 # Script to fetch album stats from last.fm and recalculate them based on track count per album.
