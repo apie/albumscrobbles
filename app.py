@@ -129,8 +129,12 @@ def render_user_stats(username: str, drange: str, year: str = None, overview_per
     if drange == "overview":
         overview = get_user_overview(username, year and int(year), overview_per_week)
         # Trick to get the start_year and current_year. The function is cached so it's quick.
-        start_year = get_user_overview(username)[0]["year"]
-        current_year = get_user_overview(username)[-1]["year"] + 1
+        try:
+            start_year = get_user_overview(username)[0]["year"]
+            current_year = get_user_overview(username)[-1]["year"] + 1
+        except IndexError:
+            start_year = None
+            current_year = None
         t = f"overview {year}" if year else "overview"
         if year:  # Prevent caching incorrect data forever if smart guy changed the url.
             today = datetime.today()

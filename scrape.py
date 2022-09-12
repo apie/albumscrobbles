@@ -73,9 +73,11 @@ def get_album_stats(username: str, drange: Optional[str] = None) -> Iterable:
 
 def get_random_interval_from_library(username: str) -> str:
     # select a random interval from the library
-    user_start_year = get_username_start_year(username)
+    user_start_year = int(get_username_start_year(username))
     today = datetime.today()
     current_year = today.year
+    if user_start_year == current_year:
+        raise ValueError('User needs to be at least 1 year old for this feature to make sense.')
 
     rand_year = randint(int(user_start_year), current_year - 1)
     interval_type = randint(1, 5)
@@ -217,6 +219,7 @@ def username_exists(username):
 
 @file_cache_decorator()
 def get_username_start_year(username: str) -> str:
+    '''Get username start year (user created account in this year) as string, since it needs to be cacheable.'''
     print(f"Get username start year: {username}", end=': ')
     page = session.get(f"https://www.last.fm/user/{username}", timeout=TIMEOUT).text
     m = re.search(r"scrobbling since \d{1,2} \w+ (\d{4})", page)
@@ -304,7 +307,10 @@ def get_album_stats_inc_random(username, drange, overview_per=None):
         stats = []
         tries = 0
         while not len(stats) and tries < 10:
-            blast_name, period, url = get_random_interval_from_library(username)
+            try:
+                blast_name, period, url = get_random_interval_from_library(username)
+            except ValueError:
+                return stats, None, None
             # need to test if the user has listening data in the selected interval
             # special case, use url as 'drange'
             stats = get_album_stats(username, url)
