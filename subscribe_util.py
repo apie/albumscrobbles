@@ -180,7 +180,7 @@ def get_feed_items(username):
     from app import app
     debug = app.config['DEBUG']
     today = datetime.date.today()
-    for dn in range(365, 0, -1):
+    for dn in range(30, 0, -1):
         d = today - datetime.timedelta(days=dn)
         yesterday = d - datetime.timedelta(days=1)
         if d.month == 1 and d.day == 1:
