@@ -44,7 +44,7 @@
     }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  {% if username %}
+  {% if username and enable_rss %}
   <link rel="alternate" type="application/rss+xml" href="/feed/{{ username }}" title="Albumscrobbles feed for {{ username }}" />
   {% endif %}
   {% endblock %}

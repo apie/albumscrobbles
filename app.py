@@ -290,10 +290,9 @@ def monthname(month_num):
 
 
 env.filters["monthname"] = monthname
-env.globals["enable_goatcounter"] = bool(getenv("GOATCOUNTER"))
-env.globals["enable_blastfromthepast"] = bool(getenv("BLASTFROMTHEPAST"))
-env.globals["enable_overview"] = bool(getenv("OVERVIEW"))
-env.globals["enable_subscription"] = bool(getenv("SUBSCRIPTION"))
+# Feature switches. Toggled by setting env vars to 0 or 1.
+for feature in ('GOATCOUNTER', 'BLASTFROMTHEPAST', 'OVERVIEW', 'SUBSCRIPTION', 'RSS'):
+    env.globals[f"enable_{feature.lower()}"] = bool(int(getenv(feature) or 0))
 ##############################
 
 
