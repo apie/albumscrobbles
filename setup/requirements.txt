@@ -6,11 +6,7 @@
 #
 apscheduler==3.9.1
     # via flask-apscheduler
-backports-zoneinfo==0.2.1
-    # via
-    #   pytz-deprecation-shim
-    #   tzlocal
-certifi==2022.9.24
+certifi==2022.12.7
     # via requests
 charset-normalizer==2.1.1
     # via requests
@@ -26,8 +22,6 @@ gunicorn==20.1.0
     # via -r requirements.in
 idna==3.4
     # via requests
-importlib-metadata==4.12.0
-    # via flask
 itsdangerous==2.1.2
     # via flask
 jinja2==3.1.2
@@ -60,8 +54,6 @@ urllib3==1.26.12
     # via requests
 werkzeug==2.2.2
     # via flask
-zipp==3.8.1
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
