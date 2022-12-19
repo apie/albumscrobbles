@@ -1,43 +1,16 @@
+import sys
 import json
-from typing import Optional
 import requests
+from typing import Optional
 
 
 from config import LASTFM_API_KEY as API_KEY
 
-# def hoi(
-#     username: str, drange: Optional[str] = None
-# ) -> str:  # returns json
-#     url = None
-#     if drange and drange.startswith("http"):
-#         url = drange
-#     else:
-#         preset = f"LAST_{drange}_DAYS" if drange else "ALL"
-#         url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
-#         print(url)
-#     resp = session.get(url, timeout=TIMEOUT)
-#     # get each column of artist name, album name and number of scrobbles
-#     data = zip(
-#         doc.xpath("//tr/td[@class='chartlist-name']/a"),
-#         doc.xpath("//tr/td[@class='chartlist-artist']/a"),
-#         doc.xpath("//tr/td/span/a/span[@class='chartlist-count-bar-value']"),
-#         doc.xpath("//tr/td[@class='chartlist-index']"),
-#     )
-#     # Needs to be cacheable so we can not use a generator.
-#     return json.dumps(
-#         list(
-#             x
-#             for x in (list(map(lambda e: e.text.strip(), elements)) for elements in data)
-#             if int(x[3]) <= MAX_ITEMS  # Do not return the full chartlist.
-#         )
-#     )
-
-import sys
 session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
 session.mount("https://", a)
 API_PERIOD = {
-    '': 'overall',
+    None: 'overall',
     '7': '7day',
     '30': '1month',
     '90': '3month',
@@ -50,7 +23,7 @@ def _get_album_stats_api(
 ) -> str:  # returns json
     from scrape import MAX_ITEMS, TIMEOUT
     url = None
-    if drange.startswith("http"):
+    if drange and drange.startswith("http"):
         url = drange
         raise NotImplementedError(f'get album stats api for {drange}')
     elif p := API_PERIOD[drange]:
@@ -59,6 +32,7 @@ def _get_album_stats_api(
         resp = session.get(url, timeout=TIMEOUT)
         resp.raise_for_status()
         j = resp.json()
+        # Dump as json so we can cache it to disk
         return json.dumps(
             [
                 (

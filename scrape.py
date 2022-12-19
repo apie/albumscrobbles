@@ -22,6 +22,7 @@ from dateutil.relativedelta import relativedelta
 from urllib.parse import quote_plus
 
 from file_cache import file_cache_decorator, binary_file_cache_decorator
+from utils.api import _get_album_stats_api
 
 TIMEOUT = 8
 MAX_ITEMS = 20
@@ -121,36 +122,7 @@ def get_random_interval_from_library(username: str) -> str:
 def _get_album_stats(
     username: str, drange: Optional[str] = None
 ) -> str:  # returns json
-    print(f"_get_album_stats {username} {drange}")
-    assert (
-        MAX_ITEMS <= PAGE_SIZE
-    ), f"{MAX_ITEMS} items requested, this is not yet supported since paging is not yet implemented"
-    url = None
-    if drange and drange.startswith("http"):
-        url = drange
-    else:
-        preset = f"LAST_{drange}_DAYS" if drange else "ALL"
-        url = f"https://www.last.fm/user/{username}/library/albums?date_preset={preset}"
-        print(url)
-    resp = session.get(url, timeout=TIMEOUT)
-    resp.raise_for_status()
-    page = resp.text
-    doc = html.fromstring(page)
-    # get each column of artist name, album name and number of scrobbles
-    data = zip(
-        doc.xpath("//tr/td[@class='chartlist-name']/a"),
-        doc.xpath("//tr/td[@class='chartlist-artist']/a"),
-        doc.xpath("//tr/td/span/a/span[@class='chartlist-count-bar-value']"),
-        doc.xpath("//tr/td[@class='chartlist-index']"),
-    )
-    # Needs to be cacheable so we can not use a generator.
-    return json.dumps(
-        list(
-            x
-            for x in (list(map(lambda e: e.text.strip(), elements)) for elements in data)
-            if int(x[3]) <= MAX_ITEMS  # Do not return the full chartlist.
-        )
-    )
+    return _get_album_stats_api(username, drange)
 
 
 @file_cache_decorator()
