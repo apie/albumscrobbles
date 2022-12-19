@@ -296,7 +296,7 @@ def monthname(month_num):
 env.filters["monthname"] = monthname
 # Feature switches. Toggled by setting env vars to 0 or 1.
 for feature in ('GOATCOUNTER', 'BLASTFROMTHEPAST', 'OVERVIEW', 'SUBSCRIPTION', 'RSS'):
-    env.globals[f"enable_{feature.lower()}"] = bool(int(getenv(feature) or 0))
+    env.globals[f"enable_{feature.lower()}"] = bool(int(getenv(feature) or app.config['DEBUG'] or 0))
 ##############################
 
 
