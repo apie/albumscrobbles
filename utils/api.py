@@ -1,4 +1,3 @@
-import sys
 import json
 import requests
 from typing import Optional
@@ -9,14 +8,17 @@ from config import LASTFM_API_KEY as API_KEY
 session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
 session.mount("https://", a)
+
 API_PERIOD = {
     None: 'overall',
+    '': 'overall',
     '7': '7day',
     '30': '1month',
     '90': '3month',
     '180': '6month',
     '365': '12month',
 }
+
 
 def _get_album_stats_api(
     username: str, drange: Optional[str] = None
