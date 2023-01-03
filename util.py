@@ -111,7 +111,7 @@ def get_recent_users_with_stats():
     return json.dumps(recent_stats)
 
 
-def _get_corrected_stats_for_album_thread(job_synchronizer, task_id, stat):
+def _get_corrected_stats_for_album_thread(job_synchronizer, stat):
     result = _get_corrected_stats_for_album(stat)
     job_synchronizer.notify_task_completion(result)
 
@@ -121,12 +121,12 @@ def correct_album_stats_thread(stats):
         return ()
     job_synchronizer = JobsSynchronizer(len(stats))
     from app import scheduler
-    for i, stat in enumerate(stats):
+    for stat in stats:
         scheduler.add_job(
             func=_get_corrected_stats_for_album_thread,
             trigger="date",
-            args=[job_synchronizer, i, stat],
-            id="j" + str(i),
+            args=[job_synchronizer, stat],
+            id='-'.join(stat),
             max_instances=10,
             misfire_grace_time=60,
         )
