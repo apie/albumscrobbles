@@ -81,6 +81,7 @@ def get_random_interval_from_library(username: str) -> str:
         raise ValueError('User needs to be at least 1 year old for this feature to make sense.')
 
     rand_year = randint(int(user_start_year), current_year - 1)
+    # To work with the last.fm api, start and end date for weeks need to be on monday 1300 in unix timestamp.
     interval_type = randint(1, 5)
     if interval_type == 1:
         name = "random month"
@@ -92,7 +93,7 @@ def get_random_interval_from_library(username: str) -> str:
         name = "random week"
         rand_week = randint(1, 53)
         # Get date of monday of the requested weeknumber. (ISO 8601)
-        start_date = datetime.strptime(f"{rand_year} {rand_week} 1", "%G %V %w")
+        start_date = datetime.strptime(f"{rand_year} {rand_week} 1", "%G %V %w") + relativedelta(hours=13)
         end_date = start_date + relativedelta(weeks=1)
         date_str = start_date.strftime("%W %Y")
     elif interval_type == 3:
@@ -103,7 +104,7 @@ def get_random_interval_from_library(username: str) -> str:
     elif interval_type == 4:
         name = "this week in history"
         # Get date of monday of the requested weeknumber. (ISO 8601)
-        start_date = datetime.strptime(f"{rand_year} {today.strftime('%W')} 1", "%G %V %w")
+        start_date = datetime.strptime(f"{rand_year} {today.strftime('%W')} 1", "%G %V %w") + relativedelta(hours=13)
         end_date = start_date + relativedelta(weeks=1)
         date_str = start_date.strftime("%W %Y")
     else:
@@ -111,11 +112,9 @@ def get_random_interval_from_library(username: str) -> str:
         start_date = datetime(year=rand_year, month=1, day=1)
         end_date = start_date + relativedelta(years=1)
         date_str = start_date.strftime("%Y")
-    # Go back one day because the last.fm query is inclusive
-    end_date -= relativedelta(days=1)
-    print(f"Trying {name}...")
-    url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
-    print(url)
+    print(f"Trying {name}... {date_str}")
+    url = f"https://ws.audioscrobbler.com/2.0/?method=user.getweeklyalbumchart&user={username}&format=json&from={start_date.strftime('%s')}&to={end_date.strftime('%s')}"
+
     return name, date_str, url
 
 
