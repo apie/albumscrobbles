@@ -4,7 +4,7 @@
 
 
 import json
-from flask import Flask, request, send_file, make_response
+from flask import Flask, request, send_file, make_response, redirect
 from jinja2 import Environment, PackageLoader, select_autoescape
 from flask_apscheduler import APScheduler
 
@@ -124,7 +124,7 @@ def period_stats():
 @logger()
 def render_user_stats(username: str, drange: str, year: str = None, overview_per_week: bool = False):
     username = username.strip()
-    assert username and username_exists(username)
+    assert username and username_exists(username), 'invalid user'
     add_recent_user(username)
     if drange == "overview":
         overview = get_user_overview(username, year and int(year), overview_per_week)
@@ -180,12 +180,11 @@ def render_user_stats(username: str, drange: str, year: str = None, overview_per
 @app.route("/get_stats")
 def get_stats():
     username = request.args.get("username")
-    if username:
-        username = username.replace(
-            "https://www.last.fm/user/", ""
-        )  # allow to enter user url as username
     if not username:
         return "Username required", 400
+    if username.startswith("https://www.last.fm/user/"):
+        # allow to enter user url as username
+        return redirect(f'/get_stats?username={username.replace("https://www.last.fm/user/", "")}')
     drange = request.args.get("range")
     # TODO move user check to here
     # TODO move overview check to here
