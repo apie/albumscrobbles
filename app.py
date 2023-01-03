@@ -184,7 +184,7 @@ def get_stats():
         return "Username required", 400
     if username.startswith("https://www.last.fm/user/"):
         # allow to enter user url as username
-        return redirect(f'/get_stats?username={username.replace("https://www.last.fm/user/", "")}')
+        return redirect(f'/get_stats?username={username.replace("https://www.last.fm/user/", "")}&range=')
     drange = request.args.get("range")
     # TODO move user check to here
     # TODO move overview check to here
