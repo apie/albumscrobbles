@@ -217,11 +217,9 @@ def get_album_stats_year_month(username, year, month=None):
         end_date = start_date + relativedelta(months=1)
     else:
         end_date = start_date + relativedelta(years=1)
-    # Go back one day because the last.fm query is inclusive
-    end_date -= relativedelta(days=1)
     if end_date.date() >= today.date():
         return  # Only consider stats from the past
-    url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+    url = f"https://ws.audioscrobbler.com/2.0/?method=user.getweeklyalbumchart&user={username}&format=json&from={start_date.strftime('%s')}&to={end_date.strftime('%s')}"
     return get_album_stats(username, url)
 
 
@@ -231,11 +229,9 @@ def get_album_stats_year_week(username, year, week):
     # Get date of monday of the requested weeknumber. (ISO 8601)
     start_date = datetime.strptime(f"{year} {week} 1", "%G %V %w")
     end_date = start_date + relativedelta(weeks=1)
-    # Go back one day because the last.fm query is inclusive
-    end_date -= relativedelta(days=1)
     if end_date.date() >= today.date():
         return  # Only consider stats from the past
-    url = f"https://www.last.fm/user/{username}/library/albums?from={start_date.strftime('%Y-%m-%d')}&to={end_date.strftime('%Y-%m-%d')}"
+    url = f"https://ws.audioscrobbler.com/2.0/?method=user.getweeklyalbumchart&user={username}&format=json&from={start_date.strftime('%s')}&to={end_date.strftime('%s')}"
     return get_album_stats(username, url)
 
 
