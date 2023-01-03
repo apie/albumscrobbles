@@ -211,13 +211,14 @@ def get_feed_items(username):
                 date=d,
             )
         if d.weekday() == 0:  # Monday
-            week = yesterday.strftime("%W")
-            if week == '00':
-                week = '53'
+            year = yesterday.year
+            week = int(yesterday.strftime("%V"))
+            if week >= 52 and yesterday.year == today.year:
+                year = year - 1
             title, link, description = get_stat_for_rss(
                 username,
                 'weekly',
-                year=yesterday.year,
+                year=year,
                 week=week,
                 debug=debug,
             )
