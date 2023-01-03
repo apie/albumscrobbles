@@ -134,7 +134,9 @@ def _get_album_details(artist_name, album_name) -> str:
     artist_name = artist_name.replace('+', '%2B')  # Fix for Cuby+Blizzards. + Needs to be encoded twice.
     url = "https://www.last.fm/music/" + quote_plus(artist_name) + "/" + quote_plus(album_name)
     print("Getting " + url)
-    page = session.get(url, timeout=TIMEOUT).text
+    response = session.get(url, timeout=TIMEOUT)
+    response.raise_for_status()
+    page = response.text
     doc = html.fromstring(page)
     # search for: <dt>Length</dt> <dd>## tracks, ##:##</dd>
     try:
