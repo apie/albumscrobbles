@@ -61,3 +61,14 @@ def _get_album_stats_api(
                 for top in j['topalbums']['album']
             ]
         )
+
+
+def _get_user_info(username):
+    url = f'http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user={username}&api_key={API_KEY}&format=json'
+    print("Getting " + url)
+    from scrape import TIMEOUT
+    resp = session.get(url, timeout=TIMEOUT)
+    if resp.status_code == 404:
+        return ''
+    # Dump json as text so we can cache it to disk
+    return resp.text

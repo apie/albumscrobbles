@@ -22,7 +22,8 @@ from dateutil.relativedelta import relativedelta
 from urllib.parse import quote_plus
 
 from file_cache import file_cache_decorator, binary_file_cache_decorator
-from utils.api import _get_album_stats_api
+from utils.api import _get_album_stats_api, _get_user_info
+
 
 TIMEOUT = 8
 MAX_ITEMS = 20
@@ -182,21 +183,22 @@ def correct_overview_stats(stats: Dict) -> Dict[int, Iterable[Dict]]:
     return {per: correct_album_stats(stats) for per, stats in stats.items()}
 
 
-@lru_cache()
-def username_exists(username):
-    resp = session.head(f"https://www.last.fm/user/{username}")
-    return resp.status_code == 200
-
-
 @file_cache_decorator()
-def get_username_start_year(username: str) -> str:
-    '''Get username start year (user created account in this year) as string, since it needs to be cacheable.'''
+def get_user_info(username):
+    return _get_user_info(username)
+
+
+def username_exists(username):
+    if get_user_info(username):
+        return True
+
+
+def get_username_start_year(username: str) -> int:
+    '''Get username start year (user created account in this year).'''
     print(f"Get username start year: {username}", end=': ')
-    page = session.get(f"https://www.last.fm/user/{username}", timeout=TIMEOUT).text
-    m = re.search(r"scrobbling since \d{1,2} \w+ (\d{4})", page)
-    start_year = m.group(1)
-    print(start_year)
-    return start_year
+    user_info = json.loads(get_user_info(username))
+    user_registered = datetime.fromtimestamp(int(user_info['user']['registered']['unixtime']))
+    return user_registered.year
 
 
 @file_cache_decorator()
