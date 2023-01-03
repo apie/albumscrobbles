@@ -27,7 +27,7 @@ def _get_album_stats_api(
     url = None
     if drange and drange.startswith("http"):
         url = drange + f'&limit={MAX_ITEMS}&api_key={API_KEY}'
-        print("Getting " + url)
+        print("Getting " + url.replace(API_KEY, 'SECRET'))
         resp = session.get(url, timeout=TIMEOUT)
         resp.raise_for_status()
         j = resp.json()
@@ -45,7 +45,7 @@ def _get_album_stats_api(
         )
     elif p := API_PERIOD[drange]:
         url = f"https://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user={username}&api_key={API_KEY}&period={p}&format=json&limit={MAX_ITEMS}"
-        print("Getting " + url)
+        print("Getting " + url.replace(API_KEY, 'SECRET'))
         resp = session.get(url, timeout=TIMEOUT)
         resp.raise_for_status()
         j = resp.json()
@@ -65,7 +65,7 @@ def _get_album_stats_api(
 
 def _get_user_info(username):
     url = f'http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user={username}&api_key={API_KEY}&format=json'
-    print("Getting " + url)
+    print("Getting " + url.replace(API_KEY, 'SECRET'))
     from scrape import TIMEOUT
     resp = session.get(url, timeout=TIMEOUT)
     if resp.status_code == 404:
