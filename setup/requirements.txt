@@ -52,7 +52,7 @@ tzlocal==4.2
     # via apscheduler
 urllib3==1.26.13
     # via requests
-werkzeug==2.2.2
+werkzeug==2.2.3
     # via flask
 
 # The following packages are considered to be unsafe in a requirements file:
