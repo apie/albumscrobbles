@@ -148,7 +148,19 @@ def _get_album_details(artist_name, album_name) -> str:
         assert int(track_count) > 2, "Probably not a real album"
     except (IndexError, AssertionError):
         # TODO add fallback? Discogs or something
-        track_count = str(12)  # Use some average track count
+        track_count = str(13.48)  # Use average and recognizable track count
+        ''' Calc average:
+        import os
+        dirname = 'cache/_get_album_details/'
+        d = os.listdir(dirname)
+        s = 0
+        for fn in d:
+            with open(dirname+fn) as f:
+                s += float(f.read().split(',')[0])
+        print(s/len(d))
+        '''
+        # When changing default fallback, remove cache containing old fallback:
+        # find cache/_get_album_details/ -type f -exec grep '13.48,' {} \; -delete
 
     # search for: <a class="cover-art"><img src="*"></a>
     try:
@@ -165,7 +177,7 @@ def _get_corrected_stats_for_album(album_stats: Tuple) -> Dict:
     # return as a list
     album_name, artist_name, scrobble_count, original_position = album_stats
     track_count, cover_url = _get_album_details(artist_name, album_name).split(",")
-    album_scrobble_count = int(scrobble_count.replace(",", "")) / int(track_count)
+    album_scrobble_count = int(scrobble_count.replace(",", "")) / float(track_count)
     return dict(
         album_name=album_name,
         artist_name=artist_name,
