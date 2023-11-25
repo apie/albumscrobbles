@@ -54,7 +54,7 @@ tzlocal==5.0.1
     # via apscheduler
 urllib3==2.0.7
     # via requests
-werkzeug==2.3.6
+werkzeug==2.3.8
     # via flask
 zipp==3.17.0
     # via importlib-metadata
