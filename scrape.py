@@ -161,6 +161,7 @@ def _get_album_details(artist_name, album_name) -> str:
         '''
         # When changing default fallback, remove cache containing old fallback:
         # find cache/_get_album_details/ -type f -exec grep '13.48,' {} \; -delete
+        # Also dont forget to change the corrections.txt file.
 
     # search for: <a class="cover-art"><img src="*"></a>
     try:
