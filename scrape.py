@@ -28,6 +28,20 @@ from utils.api import _get_album_stats_api, _get_user_info
 TIMEOUT = 8
 MAX_ITEMS = 20
 PAGE_SIZE = 50
+AVERAGE_ALBUM_TRACK_COUNT = str(13.48)  # Use average and recognizable track count
+''' Calc average:
+import os
+dirname = 'cache/_get_album_details/'
+d = os.listdir(dirname)
+s = 0
+for fn in d:
+    with open(dirname+fn) as f:
+        s += float(f.read().split(',')[0])
+print(s/len(d))
+'''
+# When changing default fallback, remove cache containing old fallback:
+# find cache/_get_album_details/ -type f -exec grep '13.48,' {} \; -delete
+# Also dont forget to change the corrections.txt file.
 
 session = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=3)
@@ -134,8 +148,12 @@ def _get_album_details(artist_name, album_name) -> str:
     artist_name = artist_name.replace('+', '%2B')  # Fix for Cuby+Blizzards. + Needs to be encoded twice.
     url = "https://www.last.fm/music/" + quote_plus(artist_name) + "/" + quote_plus(album_name)
     print("Getting " + url)
-    response = session.get(url, timeout=TIMEOUT)
-    response.raise_for_status()
+    try:
+        response = session.get(url, timeout=TIMEOUT)
+        response.raise_for_status()
+    except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError):
+        return f"{AVERAGE_ALBUM_TRACK_COUNT},"
+
     page = response.text
     doc = html.fromstring(page)
     # search for: <dt>Length</dt> <dd>## tracks, ##:##</dd>
@@ -147,21 +165,7 @@ def _get_album_details(artist_name, album_name) -> str:
         assert track_count.isnumeric()
         assert int(track_count) > 2, "Probably not a real album"
     except (IndexError, AssertionError):
-        # TODO add fallback? Discogs or something
-        track_count = str(13.48)  # Use average and recognizable track count
-        ''' Calc average:
-        import os
-        dirname = 'cache/_get_album_details/'
-        d = os.listdir(dirname)
-        s = 0
-        for fn in d:
-            with open(dirname+fn) as f:
-                s += float(f.read().split(',')[0])
-        print(s/len(d))
-        '''
-        # When changing default fallback, remove cache containing old fallback:
-        # find cache/_get_album_details/ -type f -exec grep '13.48,' {} \; -delete
-        # Also dont forget to change the corrections.txt file.
+        track_count = AVERAGE_ALBUM_TRACK_COUNT
 
     # search for: <a class="cover-art"><img src="*"></a>
     try:
