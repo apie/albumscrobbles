@@ -71,6 +71,11 @@ def favicon():
     return app.send_static_file("favicon.ico")
 
 
+@app.route("/robots.txt")
+def robots():
+    return app.send_static_file("robots.txt")
+
+
 @app.route("/static/cover/<path:file_name>")
 def static_cover(file_name):
     if file_name == "unknown.png":

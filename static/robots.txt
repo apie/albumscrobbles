@@ -1,0 +1,4 @@
+# Allow only root page to be crawled
+user-agent: *
+Allow: /$
+Disallow: /
