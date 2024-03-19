@@ -12,9 +12,7 @@
 import base64
 import json
 import requests
-import re
 from lxml import html
-from functools import lru_cache
 from typing import Optional, Iterable, Dict, Tuple
 from random import randint
 from datetime import datetime
