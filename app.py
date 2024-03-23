@@ -196,7 +196,7 @@ def get_stats():
     year = drange == "overview" and request.args.get("year")
     overview_per_week = bool(drange == "overview" and request.args.get("per") == "week")
     try:
-        return render_user_stats(username, drange, year, overview_per_week)
+        return render_user_stats(username.replace('/', ''), drange, year, overview_per_week)
     except AssertionError as e:
         print(e)
         return render_title_template(
