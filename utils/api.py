@@ -68,7 +68,7 @@ def _get_user_info(username):
     print("Getting " + url.replace(API_KEY, 'SECRET'))
     from scrape import TIMEOUT
     resp = session.get(url, timeout=TIMEOUT)
-    if resp.status_code == 404:
+    if resp.status_code != 200:
         return ''
     # Dump json as text so we can cache it to disk
     return resp.text

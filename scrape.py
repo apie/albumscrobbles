@@ -11,6 +11,7 @@
 
 import base64
 import json
+import re
 import requests
 from lxml import html
 from typing import Optional, Iterable, Dict, Tuple
@@ -205,8 +206,16 @@ def get_user_info(username):
     return _get_user_info(username)
 
 
+username_regex = re.compile(r'^[a-z][\w-]{1,14}$', flags=re.ASCII)
+
+
 def username_exists(username):
-    if get_user_info(username):
+    ''' From last.fm sign up page:
+    "Your username should be between 2 and 15 characters, begin with a letter and contain only letters, numbers, '_' or '-'"
+    Check username first locally for this format, and then remote for existence.
+    '''
+    username = username.lower()
+    if (username == 'last.hq' or re.match(username_regex, username)) and get_user_info(username):
         return True
 
 

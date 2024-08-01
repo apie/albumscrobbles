@@ -66,7 +66,7 @@ def get_recent_users():
         with open(RECENT_USERS_FILE) as f:
             return f.read()
     except FileNotFoundError:
-        return ""
+        return "last.hq"
 
 
 def add_recent_user(username):
