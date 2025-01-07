@@ -1,6 +1,6 @@
 #m  h  dom mon dow   command
-58  6  *   *   *     /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/apply_corrections.py
-59  6  *   *   mon   /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/send_mails.py weekly
-59  6  1   *   *     /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/send_mails.py monthly
-59  6  1   1   *     /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/send_mails.py yearly
+58  */4 *  *   *     /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/apply_corrections.py
+59  6  *   *   tue   /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/send_mails.py weekly
+59  6  2   *   *     /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/send_mails.py monthly
+59  6  2   1   *     /home/telegram/albumscrobbles/venv/bin/python /home/telegram/albumscrobbles/send_mails.py yearly
 
