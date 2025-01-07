@@ -6,6 +6,8 @@ from email.message import EmailMessage
 from itsdangerous import URLSafeTimedSerializer
 from itsdangerous.exc import BadSignature
 
+from typing import Dict
+
 from util import get_period_stats
 from config import SECRET_KEY, FROM_ADDRESS
 
@@ -75,7 +77,7 @@ def save_confirmed_subscription(username, email):
         print('Added subscription', subscription_details)
 
 
-def get_most_recent_period(period_name):
+def get_most_recent_period(period_name: str) -> Dict[str, int]:
     today = datetime.date.today()
     if period_name == 'year':
         return dict(year=today.year - 1)
@@ -83,10 +85,9 @@ def get_most_recent_period(period_name):
         d = today - relativedelta(months=1)
         return dict(year=d.year, month=d.month)
     if period_name == 'week':
-        # Get date of monday of the requested weeknumber. (ISO 8601)
-        monday_this_week = datetime.datetime.strptime(f"{today.year} {today.strftime('%W')} 1", "%G %V %w")
-        monday_last_week = monday_this_week - relativedelta(weeks=1)
-        return dict(year=monday_last_week.year, week=monday_last_week.strftime("%W"))
+        today_last_week = today - relativedelta(weeks=1)
+        return dict(year=int(today_last_week.strftime("%G")), week=int(today_last_week.strftime("%V")))
+    raise NotImplementedError(f'Unknown {period_name=}')
 
 
 def get_period_str(period_dict):
