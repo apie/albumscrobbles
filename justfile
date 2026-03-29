@@ -15,6 +15,10 @@ run:
 dev:
     FLASK_DEBUG=1 venv/bin/flask run
 
+# Run tests
+test:
+    venv/bin/python -m unittest tests.py
+
 # Regenerate requirements.txt from requirements.in
 compile:
     uv pip compile setup/requirements.in -o setup/requirements.txt --python-version 3.14
