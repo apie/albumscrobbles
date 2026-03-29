@@ -16,10 +16,14 @@ flask==3.1.3
     #   flask-apscheduler
 flask-apscheduler==1.13.1
     # via -r setup/requirements.in
+freezegun==1.5.5
+    # via -r setup/requirements.in
 gunicorn==25.3.0
     # via -r setup/requirements.in
 idna==3.11
     # via requests
+iniconfig==2.3.0
+    # via pytest
 itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
@@ -34,9 +38,19 @@ markupsafe==3.0.3
 min-rss==0.0.3
     # via -r setup/requirements.in
 packaging==26.0
-    # via gunicorn
+    # via
+    #   gunicorn
+    #   pytest
+pluggy==1.6.0
+    # via pytest
+pygments==2.20.0
+    # via pytest
+pytest==9.0.2
+    # via -r setup/requirements.in
 python-dateutil==2.9.0.post0
-    # via flask-apscheduler
+    # via
+    #   flask-apscheduler
+    #   freezegun
 pytz==2023.3.post1
     # via apscheduler
 requests==2.33.0
