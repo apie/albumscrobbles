@@ -4,5 +4,4 @@ gunicorn
 flask
 Flask-APScheduler
 min-rss
-pytest
 freezegun
