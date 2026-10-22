@@ -51,7 +51,7 @@ six==1.16.0
     #   python-dateutil
 tzlocal==5.2
     # via apscheduler
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
 werkzeug==3.1.7
     # via flask
