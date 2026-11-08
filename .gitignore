@@ -3,8 +3,9 @@
 .vscode/*
 .idea
 .flake8
-venv/
+.venv/
 __pycache__/
+.claude/
 todo.txt
 cache/
 recent.txt
