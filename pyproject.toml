@@ -1,0 +1,20 @@
+[project]
+name = "albumscrobbles"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "requests",
+    "lxml",
+    "gunicorn",
+    "flask",
+    "Flask-APScheduler",
+    "min-rss",
+]
+
+[dependency-groups]
+dev = [
+    "freezegun",
+]
+
+[tool.uv]
+package = false

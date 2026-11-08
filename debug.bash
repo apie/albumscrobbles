@@ -1,3 +1,2 @@
 #!/bin/bash
-source venv/bin/activate
-FLASK_DEBUG=1 flask run
+FLASK_DEBUG=1 uv run flask run

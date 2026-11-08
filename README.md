@@ -20,8 +20,8 @@ Copy `config.example` to `config.py` and edit it before running.
 
 | Recipe | Description |
 |--------|-------------|
-| `just install` | Create venv and sync dependencies |
+| `just install` | Create .venv and sync dependencies |
 | `just run` | Start the app (gunicorn) |
 | `just dev` | Start Flask dev server |
 | `just test` | Run tests |
-| `just compile` | Regenerate `setup/requirements.txt` from `setup/requirements.in` |
+| `just update` | Upgrade `uv.lock` to the latest allowed versions |
