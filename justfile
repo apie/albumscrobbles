@@ -1,6 +1,6 @@
 # Create .venv and sync dependencies
 install:
-    uv sync
+    ~/.local/bin/uv sync
 
 # Start the app via gunicorn
 run:
@@ -12,8 +12,8 @@ dev:
 
 # Run tests
 test:
-    uv run python -m unittest tests.py
+    ~/.local/bin/uv run python -m unittest tests.py
 
 # Update uv.lock to the latest allowed versions
 update:
-    uv lock --upgrade
+    ~/.local/bin/uv lock --upgrade

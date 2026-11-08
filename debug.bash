@@ -1,2 +1,2 @@
 #!/bin/bash
-FLASK_DEBUG=1 uv run flask run
+FLASK_DEBUG=1 ~/.local/bin/uv run flask run
