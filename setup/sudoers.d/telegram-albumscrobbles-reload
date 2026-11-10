@@ -1,1 +1,0 @@
-telegram ALL = (root) NOPASSWD: /bin/systemctl reload albumscrobbles
